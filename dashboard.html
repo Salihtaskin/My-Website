@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard // Salih Taşkın</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="dashboard-page">
+
+<canvas id="matrix-canvas"></canvas>
+<div id="toast-container"></div>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">S.T <span>// CyberSec</span></a>
+    <div class="nav-actions">
+      <div class="lang-toggle">
+        <button data-lang="tr">TR</button>
+        <button data-lang="en">EN</button>
+      </div>
+      <button class="btn btn-alt" id="logout-btn" data-i18n="dash.logout">Çıkış Yap</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container dash-wrap">
+  <div class="dash-header">
+    <div>
+      <h2 class="section-title" data-i18n="dash.title">Kontrol Paneli</h2>
+      <div class="section-sub" id="dash-welcome" style="margin-bottom:0;" data-i18n="dash.loading">Yükleniyor...</div>
+    </div>
+  </div>
+
+  <!-- Herkes için görünen genel kartlar -->
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h4 data-i18n="dash.card1">Sistem Durumu</h4>
+      <div class="dash-log">
+        <div class="ok">[OK] Firewall: active</div>
+        <div class="ok">[OK] VPN: connected</div>
+        <div class="ok">[OK] Kali Linux: ready</div>
+      </div>
+    </div>
+    <div class="dash-card">
+      <h4 data-i18n="dash.card2">Aktif Modüller</h4>
+      <div class="dash-log">
+        <div>nmap — network scanner</div>
+        <div>hydra — brute force testing</div>
+        <div>burpsuite — web proxy</div>
+        <div>metasploit — exploitation framework</div>
+      </div>
+    </div>
+    <div class="dash-card">
+      <h4 data-i18n="dash.card3">Hesap Bilgileri</h4>
+      <div class="dash-log" id="account-info">—</div>
+    </div>
+  </div>
+
+  <p class="login-hint" style="margin-top:30px;max-width:640px;" data-i18n="dash.note">
+    Not: "Sistem Durumu" ve "Aktif Modüller" kartları temsili/gösterim amaçlıdır.
+  </p>
+
+  <!-- Sadece admin için: Kullanıcı Yönetimi -->
+  <div id="admin-panel" style="display:none; margin-top:60px;">
+    <h2 class="section-title" data-i18n="dash.admin_title">Kullanıcı Yönetimi</h2>
+
+    <div class="dash-grid" style="margin-bottom:30px;">
+      <div class="dash-card"><h4 data-i18n="dash.stats_total">Toplam Kullanıcı</h4><div class="stat-num" id="stat-total">0</div></div>
+      <div class="dash-card"><h4 data-i18n="dash.stats_pending">Onay Bekleyen</h4><div class="stat-num" id="stat-pending">0</div></div>
+      <div class="dash-card"><h4 data-i18n="dash.stats_approved">Onaylı</h4><div class="stat-num" id="stat-approved">0</div></div>
+      <div class="dash-card"><h4 data-i18n="dash.stats_admins">Yönetici</h4><div class="stat-num" id="stat-admins">0</div></div>
+    </div>
+
+    <input type="text" id="user-search" class="search-input" data-i18n-placeholder="dash.search_placeholder" placeholder="İsim veya e-posta ile ara...">
+
+    <div class="table-wrap">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th data-i18n="dash.table_name">Ad Soyad</th>
+            <th data-i18n="dash.table_email">E-posta</th>
+            <th data-i18n="dash.table_phone">Telefon</th>
+            <th data-i18n="dash.table_role">Rol</th>
+            <th data-i18n="dash.table_status">Durum</th>
+            <th data-i18n="dash.table_actions">İşlemler</th>
+          </tr>
+        </thead>
+        <tbody id="user-table-body">
+          <!-- JS ile doldurulacak -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="js/translations.js"></script>
+<script src="js/main.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

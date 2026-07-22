@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kayıt Ol // Salih Taşkın</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">S.T <span>// CyberSec</span></a>
+    <div class="nav-actions">
+      <div class="lang-toggle">
+        <button data-lang="tr">TR</button>
+        <button data-lang="en">EN</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="top"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div>
+    <h2 data-i18n="register.title">Hesap Oluştur</h2>
+    <div class="sub" data-i18n="register.sub">Erişim talebi göndermek için bilgilerini gir</div>
+
+    <form id="register-form">
+      <div class="field">
+        <label data-i18n="register.name_label">Ad Soyad</label>
+        <input type="text" id="full_name" autocomplete="name" required>
+      </div>
+      <div class="field">
+        <label data-i18n="register.email_label">E-posta</label>
+        <input type="email" id="email" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label data-i18n="register.phone_label">Telefon</label>
+        <input type="tel" id="phone" autocomplete="tel" placeholder="+90 5xx xxx xx xx">
+      </div>
+      <div class="field">
+        <label data-i18n="register.pass_label">Şifre</label>
+        <input type="password" id="password" autocomplete="new-password" required>
+        <div class="strength-bar"><i id="strength-fill"></i></div>
+        <div class="strength-label" id="strength-label"></div>
+      </div>
+      <div class="field">
+        <label data-i18n="register.confirm_label">Şifre (Tekrar)</label>
+        <input type="password" id="confirm" autocomplete="new-password" required>
+      </div>
+      <div class="login-msg" id="register-msg"></div>
+      <button type="submit" class="btn" id="register-submit" style="width:100%;justify-content:center;" data-i18n="register.btn">Kayıt Ol</button>
+    </form>
+
+    <div class="login-hint" data-i18n="register.note" data-i18n-html>
+      Kayıt sonrası hesabın <b>onay bekliyor</b> durumuna geçer.
+    </div>
+    <div class="login-hint" style="border-top:none;padding-top:0;">
+      <span data-i18n="register.have_account">Zaten hesabın var mı?</span>
+      <a href="login.html" style="color:var(--neon);" data-i18n="register.login_link">Giriş yap</a>
+    </div>
+    <a href="index.html" class="back-link" data-i18n="register.back">← Ana sayfaya dön</a>
+  </div>
+</div>
+
+<script src="js/translations.js"></script>
+<script src="js/main.js"></script>
+<script src="js/register.js"></script>
+</body>
+</html>

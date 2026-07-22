@@ -1,0 +1,41 @@
+import { hashPassword, jsonResponse, EMAIL_RE } from "../_lib/auth.js";
+
+export async function onRequestPost(context) {
+  try {
+    const body = await context.request.json().catch(() => ({}));
+    const full_name = (body.full_name || "").toString().trim().slice(0, 120);
+    const email = (body.email || "").toString().trim().toLowerCase().slice(0, 160);
+    const phone = (body.phone || "").toString().trim().slice(0, 40);
+    const password = (body.password || "").toString();
+
+    if (!full_name || !email || !password) {
+      return jsonResponse({ error: "missing_fields" }, 400);
+    }
+    if (!EMAIL_RE.test(email)) {
+      return jsonResponse({ error: "invalid_email" }, 400);
+    }
+    if (password.length < 8) {
+      return jsonResponse({ error: "weak_password" }, 400);
+    }
+
+    const existing = await context.env.DB
+      .prepare("SELECT id FROM users WHERE email = ?")
+      .bind(email)
+      .first();
+
+    if (existing) {
+      return jsonResponse({ error: "email_exists" }, 409);
+    }
+
+    const { hash, salt } = await hashPassword(password);
+
+    await context.env.DB.prepare(
+      `INSERT INTO users (full_name, email, phone, password_hash, salt, role, status)
+       VALUES (?, ?, ?, ?, ?, 'user', 'pending')`
+    ).bind(full_name, email, phone, hash, salt).run();
+
+    return jsonResponse({ ok: true });
+  } catch (err) {
+    return jsonResponse({ error: "server_error", detail: String(err) }, 500);
+  }
+}

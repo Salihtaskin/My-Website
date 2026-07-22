@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salih Taşkın // Cyber Security</title>
+<meta name="description" content="Salih Taşkın - Cyber Security Student & Penetration Tester Portfolio">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="#home" class="logo">S.T <span>// CyberSec</span></a>
+    <ul class="nav-links">
+      <li><a href="#home" data-i18n="nav.home">Ana Sayfa</a></li>
+      <li><a href="#about" data-i18n="nav.about">Hakkımda</a></li>
+      <li><a href="#skills" data-i18n="nav.skills">Yetenekler</a></li>
+      <li><a href="#experience" data-i18n="nav.experience">Deneyim</a></li>
+      <li><a href="#education" data-i18n="nav.education">Eğitim</a></li>
+      <li><a href="#projects" data-i18n="nav.projects">Projeler</a></li>
+      <li><a href="#certificates" data-i18n="nav.certificates">Sertifikalar</a></li>
+      <li><a href="#contact" data-i18n="nav.contact">İletişim</a></li>
+      <li><a href="register.html" data-i18n="nav.register">Kayıt Ol</a></li>
+      <li><a href="login.html" data-i18n="nav.login">Giriş Yap</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div class="lang-toggle">
+        <button data-lang="tr">TR</button>
+        <button data-lang="en">EN</button>
+      </div>
+      <button class="nav-toggle" aria-label="menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="container">
+    <div class="hero-tag" data-i18n="hero.tag">root@salih:~# whoami</div>
+    <h1 class="glitch">SALİH TAŞKIN</h1>
+    <div class="role" data-i18n="hero.role">Siber Güvenlik Öğrencisi & Sızma Testi Meraklısı</div>
+    <p class="desc" data-i18n="hero.desc">İstinye Üniversitesi öğrencisiyim.</p>
+    <div class="terminal-line">&gt; <span class="typed"></span><span class="cursor"></span></div>
+    <div class="hero-actions">
+      <a href="#projects" class="btn" data-i18n="hero.btn_projects">Projelerimi Gör</a>
+      <a href="#contact" class="btn btn-alt" data-i18n="hero.btn_contact">İletişime Geç</a>
+      <a href="login.html" class="btn btn-alt" data-i18n="hero.btn_login">Panele Giriş</a>
+    </div>
+    <div class="alert-banner" data-i18n="hero.alert" data-i18n-html>
+      <b>UYARI:</b> Bu site, sahibi tarafından yürütülen yetkilendirilmiş sızma testi (pentest) ve güvenlik denemeleri için bir laboratuvar ortamıdır.
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="container">
+    <h2 class="section-title" data-i18n="about.title">Hakkımda</h2>
+    <div class="section-sub" data-i18n="about.sub">profil.txt</div>
+    <div class="about-grid">
+      <div class="about-photo">
+        <div class="frame"><img src="assets/profile.jpg" alt="Salih Taşkın"></div>
+      </div>
+      <div>
+        <p data-i18n="about.text">İstinye Üniversitesi'nde okuyorum...</p>
+        <ul class="info-list">
+          <li><span data-i18n="about.role_label">Ünvan</span><span data-i18n="about.role_value">Siber Güvenlik Öğrencisi / Pentester</span></li>
+          <li><span data-i18n="about.status_label">Durum</span><span data-i18n="about.status_value">Türkiye Siber Vatan Programı</span></li>
+          <li><span data-i18n="about.lang_label">Diller</span><span data-i18n="about.lang_value">Türkçe, İngilizce</span></li>
+          <li><span data-i18n="about.loc_label">Konum</span><span data-i18n="about.loc_value">İstanbul, Türkiye</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section class="section" id="skills">
+  <div class="container">
+    <h2 class="section-title" data-i18n="skills.title">Yetenekler</h2>
+    <div class="section-sub" data-i18n="skills.sub">cat skills.json</div>
+    <div class="skills-grid">
+      <div class="skill-card"><h4 data-i18n="skill.pentest">Sızma Testi</h4><div class="bar" style="--lvl:90%"><i></i></div></div>
+      <div class="skill-card"><h4 data-i18n="skill.network">Ağ Güvenliği Temelleri</h4><div class="bar" style="--lvl:85%"><i></i></div></div>
+      <div class="skill-card"><h4 data-i18n="skill.subnet">IP Adresleme & Subnetting</h4><div class="bar" style="--lvl:80%"><i></i></div></div>
+      <div class="skill-card"><h4 data-i18n="skill.python">Python</h4><div class="bar" style="--lvl:80%"><i></i></div></div>
+      <div class="skill-card"><h4 data-i18n="skill.kali">Kali Linux</h4><div class="bar" style="--lvl:85%"><i></i></div></div>
+      <div class="skill-card"><h4 data-i18n="skill.team">Takım Çalışması</h4><div class="bar" style="--lvl:90%"><i></i></div></div>
+      <div class="skill-card"><h4 data-i18n="skill.scan">Ağ Tarama</h4><div class="bar" style="--lvl:80%"><i></i></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section class="section" id="experience">
+  <div class="container">
+    <h2 class="section-title" data-i18n="experience.title">Deneyim</h2>
+    <div class="section-sub" data-i18n="experience.sub">tail -f experience.log</div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <span class="date" data-i18n="exp5.date">Devam Ediyor</span>
+        <h4 data-i18n="exp5.title">Katılımcı</h4>
+        <div class="org" data-i18n="exp5.org">Türkiye Siber Vatan Programı</div>
+        <ul><li data-i18n="exp5.li1">Sızma testi ve ağ güvenliği eğitimi.</li></ul>
+      </div>
+      <div class="timeline-item">
+        <span class="date" data-i18n="exp4.date">2024 - 2025</span>
+        <h4 data-i18n="exp4.title">Başkan Yardımcısı</h4>
+        <div class="org" data-i18n="exp4.org">İstinye Üniversitesi Siber Güvenlik Kulübü (IsüSiber)</div>
+        <ul>
+          <li data-i18n="exp4.li1">Kulüp etkinliklerinin planlanması ve organizasyonu.</li>
+          <li data-i18n="exp4.li2">Takımlar arası koordinasyon.</li>
+        </ul>
+      </div>
+      <div class="timeline-item">
+        <span class="date" data-i18n="exp3.date">2024 - 2025</span>
+        <h4 data-i18n="exp3.title">Öğrenci Mentörü</h4>
+        <div class="org" data-i18n="exp3.org">T3 Vakfı - Türkiye Teknoloji Takımı</div>
+        <ul>
+          <li data-i18n="exp3.li1">Teknoloji ve inovasyon alanlarında bilgi paylaşımı.</li>
+          <li data-i18n="exp3.li2">Atölye çalışmalarına katkı.</li>
+          <li data-i18n="exp3.li3">TEKNOFEST projelerine teknik mentorluk.</li>
+        </ul>
+      </div>
+      <div class="timeline-item">
+        <span class="date" data-i18n="exp2.date">2024</span>
+        <h4 data-i18n="exp2.title">Bilgi Güvenliği Stajyeri</h4>
+        <div class="org" data-i18n="exp2.org">BAYKAR Technology</div>
+        <ul><li data-i18n="exp2.li1">3 aylık gönüllü staj.</li></ul>
+      </div>
+      <div class="timeline-item">
+        <span class="date" data-i18n="exp1.date">2023</span>
+        <h4 data-i18n="exp1.title">Bilgi Güvenliği Stajyeri</h4>
+        <div class="org" data-i18n="exp1.org">BAYKAR Technology</div>
+        <ul><li data-i18n="exp1.li1">2 aylık zorunlu staj.</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION -->
+<section class="section" id="education">
+  <div class="container">
+    <h2 class="section-title" data-i18n="education.title">Eğitim</h2>
+    <div class="section-sub" data-i18n="education.sub">ls -la education/</div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <span class="date" data-i18n="edu2.date">2025 - Devam Ediyor</span>
+        <h4 data-i18n="edu2.title">Web Tasarımı ve Kodlama</h4>
+        <div class="org" data-i18n="edu2.org">İstanbul Üniversitesi</div>
+      </div>
+      <div class="timeline-item">
+        <span class="date" data-i18n="edu1.date">2024 - Devam Ediyor</span>
+        <h4 data-i18n="edu1.title">Bilgi Güvenliği Teknolojisi</h4>
+        <div class="org" data-i18n="edu1.org">İstinye Üniversitesi</div>
+      </div>
+      <div class="timeline-item">
+        <span class="date" data-i18n="edu3.date">2020 - 2024</span>
+        <h4 data-i18n="edu3.title">Siber Güvenlik Bölümü - Lise</h4>
+        <div class="org" data-i18n="edu3.org">Nevşehir MTAL</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="section" id="projects">
+  <div class="container">
+    <h2 class="section-title" data-i18n="projects.title">Projeler</h2>
+    <div class="section-sub" data-i18n="projects.sub">git log --oneline</div>
+    <div class="cards-grid">
+      <div class="card">
+        <span class="tag" data-i18n="proj1.tag">Web · Python · Pentest</span>
+        <h4 data-i18n="proj1.title">Pentest Kontrol Paneli</h4>
+        <p data-i18n="proj1.desc">Birden fazla sızma testi aracını birleştiren panel.</p>
+        <ul>
+          <li data-i18n="proj1.li1">Python ve modern web teknolojileri ile geliştirildi.</li>
+          <li data-i18n="proj1.li2">Modüler mimari.</li>
+          <li data-i18n="proj1.li3">AI destekli analiz ve otomatik raporlama.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tag" data-i18n="proj2.tag">Ulusal Program · Devam Ediyor</span>
+        <h4 data-i18n="proj2.title">Türkiye Siber Vatan Programı</h4>
+        <p data-i18n="proj2.desc">Sızma testi ve ağ güvenliği eğitim programı.</p>
+      </div>
+      <div class="card">
+        <span class="tag" data-i18n="proj3.tag">Gönüllülük</span>
+        <h4 data-i18n="proj3.title">Türkiye Teknoloji Takımı Vakfı</h4>
+        <p data-i18n="proj3.desc">T3 Vakfı bünyesinde gönüllü projeler, TEKNOFEST İstanbul.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFICATES -->
+<section class="section" id="certificates">
+  <div class="container">
+    <h2 class="section-title" data-i18n="certificates.title">Sertifikalar & Başarılar</h2>
+    <div class="section-sub" data-i18n="certificates.sub">cat certificates.txt</div>
+    <ul class="cert-list">
+      <li data-i18n="cert1">Versiyon Kontrolü: Git ve GitHub — BTK Akademi</li>
+      <li data-i18n="cert2">Siber Kulüpler Birliği 2025 Kış Kampı: Dijital Adli Bilişim</li>
+      <li data-i18n="cert3">Cyber Anadolu Toplulukları 2025 Kış Kampı: Ağ Güvenliği</li>
+      <li data-i18n="cert4">Siber Güvenliğe Giriş — Cisco</li>
+      <li data-i18n="cert5">Siber Güvenliğe Giriş — TryHackMe</li>
+      <li data-i18n="cert6">Cisco CCNA: Ağlara Giriş — Cisco</li>
+      <li data-i18n="cert7">Cisco CCNA 2: Anahtarlama, Yönlendirme ve Kablosuz Ağ Temelleri — Cisco</li>
+    </ul>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact" style="border-bottom:none;">
+  <div class="container">
+    <h2 class="section-title" data-i18n="contact.title">İletişim</h2>
+    <div class="section-sub" data-i18n="contact.sub">ping salih --start-connection</div>
+    <div class="contact-grid">
+      <div class="contact-card">
+        <div class="ic">@</div>
+        <div data-i18n="contact.email_label">E-posta</div>
+        <a href="mailto:salihtaskin282282@gmail.com">salihtaskin282282@gmail.com</a>
+      </div>
+      <div class="contact-card">
+        <div class="ic">&lt;/&gt;</div>
+        <div data-i18n="contact.github_label">GitHub</div>
+        <a href="https://github.com/Salihtaskin" target="_blank" rel="noopener">github.com/Salihtaskin</a>
+      </div>
+      <div class="contact-card">
+        <div class="ic">in</div>
+        <div data-i18n="contact.linkedin_label">LinkedIn</div>
+        <a href="https://www.linkedin.com/in/salihtaskin/" target="_blank" rel="noopener">linkedin.com/in/salihtaskin</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div>© <span id="year"></span> Salih Taşkın — <span data-i18n="footer.text">Tüm hakları saklıdır.</span></div>
+    <div class="made" data-i18n="footer.made">Cloudflare Pages üzerinde barındırılıyor.</div>
+  </div>
+</footer>
+
+<script src="js/translations.js"></script>
+<script src="js/main.js"></script>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
