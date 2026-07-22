@@ -28,11 +28,20 @@ export async function onRequestPost(context) {
     }
 
     const { hash, salt } = await hashPassword(password);
+    const ip = context.request.headers.get("CF-Connecting-IP") || "unknown";
 
-    await context.env.DB.prepare(
-      `INSERT INTO users (full_name, email, phone, password_hash, salt, role, status)
-       VALUES (?, ?, ?, ?, ?, 'user', 'pending')`
-    ).bind(full_name, email, phone, hash, salt).run();
+    try {
+      await context.env.DB.prepare(
+        `INSERT INTO users (full_name, email, phone, password_hash, salt, role, status, registered_ip)
+         VALUES (?, ?, ?, ?, ?, 'user', 'pending', ?)`
+      ).bind(full_name, email, phone, hash, salt, ip).run();
+    } catch (e) {
+      // registered_ip sütunu henüz yoksa (migration çalıştırılmadıysa) eski şekilde dene
+      await context.env.DB.prepare(
+        `INSERT INTO users (full_name, email, phone, password_hash, salt, role, status)
+         VALUES (?, ?, ?, ?, ?, 'user', 'pending')`
+      ).bind(full_name, email, phone, hash, salt).run();
+    }
 
     return jsonResponse({ ok: true });
   } catch (err) {

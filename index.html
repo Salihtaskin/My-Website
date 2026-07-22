@@ -24,8 +24,10 @@
       <li><a href="#projects" data-i18n="nav.projects">Projeler</a></li>
       <li><a href="#certificates" data-i18n="nav.certificates">Sertifikalar</a></li>
       <li><a href="#contact" data-i18n="nav.contact">İletişim</a></li>
-      <li><a href="register.html" data-i18n="nav.register">Kayıt Ol</a></li>
-      <li><a href="login.html" data-i18n="nav.login">Giriş Yap</a></li>
+      <li data-auth="guest-only"><a href="register.html" data-i18n="nav.register">Kayıt Ol</a></li>
+      <li data-auth="guest-only"><a href="login.html" data-i18n="nav.login">Giriş Yap</a></li>
+      <li data-auth="user-only" style="display:none;"><a href="dashboard.html" data-i18n="nav.dashboard">Panele Git</a></li>
+      <li data-auth="user-only" style="display:none;"><a href="#" id="nav-logout-btn" data-i18n="dash.logout">Çıkış Yap</a></li>
     </ul>
     <div class="nav-actions">
       <div class="lang-toggle">
@@ -248,6 +250,7 @@
 
 <script src="js/translations.js"></script>
 <script src="js/main.js"></script>
+<script src="js/session-ui.js"></script>
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>

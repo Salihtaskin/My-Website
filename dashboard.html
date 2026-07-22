@@ -61,35 +61,94 @@
     Not: "Sistem Durumu" ve "Aktif Modüller" kartları temsili/gösterim amaçlıdır.
   </p>
 
-  <!-- Sadece admin için: Kullanıcı Yönetimi -->
+  <!-- Sadece admin için: Kullanıcı Yönetimi + Güvenlik -->
   <div id="admin-panel" style="display:none; margin-top:60px;">
-    <h2 class="section-title" data-i18n="dash.admin_title">Kullanıcı Yönetimi</h2>
 
-    <div class="dash-grid" style="margin-bottom:30px;">
-      <div class="dash-card"><h4 data-i18n="dash.stats_total">Toplam Kullanıcı</h4><div class="stat-num" id="stat-total">0</div></div>
-      <div class="dash-card"><h4 data-i18n="dash.stats_pending">Onay Bekleyen</h4><div class="stat-num" id="stat-pending">0</div></div>
-      <div class="dash-card"><h4 data-i18n="dash.stats_approved">Onaylı</h4><div class="stat-num" id="stat-approved">0</div></div>
-      <div class="dash-card"><h4 data-i18n="dash.stats_admins">Yönetici</h4><div class="stat-num" id="stat-admins">0</div></div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" data-tab="users" data-i18n="dash.tab_users">Kullanıcılar</button>
+      <button class="admin-tab" data-tab="security" data-i18n="dash.tab_security">Güvenlik</button>
     </div>
 
-    <input type="text" id="user-search" class="search-input" data-i18n-placeholder="dash.search_placeholder" placeholder="İsim veya e-posta ile ara...">
+    <!-- TAB: Kullanıcılar -->
+    <div id="tab-users" class="admin-tab-panel">
+      <h2 class="section-title" data-i18n="dash.admin_title">Kullanıcı Yönetimi</h2>
 
-    <div class="table-wrap">
-      <table class="user-table">
-        <thead>
-          <tr>
-            <th data-i18n="dash.table_name">Ad Soyad</th>
-            <th data-i18n="dash.table_email">E-posta</th>
-            <th data-i18n="dash.table_phone">Telefon</th>
-            <th data-i18n="dash.table_role">Rol</th>
-            <th data-i18n="dash.table_status">Durum</th>
-            <th data-i18n="dash.table_actions">İşlemler</th>
-          </tr>
-        </thead>
-        <tbody id="user-table-body">
-          <!-- JS ile doldurulacak -->
-        </tbody>
-      </table>
+      <div class="dash-grid" style="margin-bottom:30px;">
+        <div class="dash-card"><h4 data-i18n="dash.stats_total">Toplam Kullanıcı</h4><div class="stat-num" id="stat-total">0</div></div>
+        <div class="dash-card"><h4 data-i18n="dash.stats_pending">Onay Bekleyen</h4><div class="stat-num" id="stat-pending">0</div></div>
+        <div class="dash-card"><h4 data-i18n="dash.stats_approved">Onaylı</h4><div class="stat-num" id="stat-approved">0</div></div>
+        <div class="dash-card"><h4 data-i18n="dash.stats_admins">Yönetici</h4><div class="stat-num" id="stat-admins">0</div></div>
+      </div>
+
+      <div class="table-toolbar">
+        <input type="text" id="user-search" class="search-input" data-i18n-placeholder="dash.search_placeholder" placeholder="İsim veya e-posta ile ara...">
+        <select id="user-filter" class="filter-select">
+          <option value="all" data-i18n="dash.filter_all">Tümü</option>
+          <option value="pending" data-i18n="dash.status_pending">Onay Bekliyor</option>
+          <option value="approved" data-i18n="dash.status_approved">Onaylı</option>
+          <option value="rejected" data-i18n="dash.status_rejected">Reddedildi</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th data-i18n="dash.table_name">Ad Soyad</th>
+              <th data-i18n="dash.table_email">E-posta</th>
+              <th data-i18n="dash.table_phone">Telefon</th>
+              <th data-i18n="dash.table_role">Rol</th>
+              <th data-i18n="dash.table_status">Durum</th>
+              <th data-i18n="dash.table_last_login">Son Giriş</th>
+              <th data-i18n="dash.table_ip">IP</th>
+              <th data-i18n="dash.table_actions">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="user-table-body">
+            <!-- JS ile doldurulacak -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: Güvenlik -->
+    <div id="tab-security" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.security_title">Güvenlik Görünürlüğü</h2>
+      <div class="section-sub" data-i18n="dash.security_sub">Son 24 saatteki giriş aktivitesi ve anomali tespiti</div>
+
+      <div class="dash-grid" style="margin-bottom:30px;">
+        <div class="dash-card"><h4 data-i18n="dash.sec_total">24s Giriş Denemesi</h4><div class="stat-num" id="sec-total">0</div></div>
+        <div class="dash-card"><h4 data-i18n="dash.sec_success">Başarılı</h4><div class="stat-num ok" id="sec-success">0</div></div>
+        <div class="dash-card"><h4 data-i18n="dash.sec_fail">Başarısız</h4><div class="stat-num warn" id="sec-fail">0</div></div>
+        <div class="dash-card"><h4 data-i18n="dash.sec_ips">Benzersiz IP</h4><div class="stat-num" id="sec-ips">0</div></div>
+      </div>
+
+      <div id="migration-warning" class="alert-banner" style="display:none;margin-top:0;margin-bottom:30px;max-width:none;" data-i18n="dash.migration_warning" data-i18n-html>
+        <b>Not:</b> Güvenlik logları için migration_v2.sql henüz çalıştırılmamış görünüyor.
+      </div>
+
+      <h4 style="color:var(--neon-red);margin-bottom:14px;" data-i18n="dash.anomalies_title">Tespit Edilen Anomaliler</h4>
+      <div id="anomaly-list" class="anomaly-list">
+        <!-- JS ile doldurulacak -->
+      </div>
+
+      <h4 style="color:var(--neon);margin:34px 0 14px;" data-i18n="dash.recent_logins_title">Son Giriş Denemeleri</h4>
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th data-i18n="dash.table_date">Zaman</th>
+              <th data-i18n="dash.table_email">E-posta</th>
+              <th data-i18n="dash.table_ip">IP</th>
+              <th data-i18n="dash.table_ua">Cihaz / Tarayıcı</th>
+              <th data-i18n="dash.table_status">Durum</th>
+            </tr>
+          </thead>
+          <tbody id="login-log-body">
+            <!-- JS ile doldurulacak -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

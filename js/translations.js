@@ -14,6 +14,7 @@ const translations = {
   "nav.contact":     { tr: "İletişim",   en: "Contact" },
   "nav.register":    { tr: "Kayıt Ol",   en: "Register" },
   "nav.login":       { tr: "Giriş Yap",  en: "Login" },
+  "nav.dashboard":   { tr: "Panele Git", en: "Go to Dashboard" },
 
   // HERO
   "hero.tag":   { tr: "root@salih:~# whoami", en: "root@salih:~# whoami" },
@@ -198,6 +199,31 @@ const translations = {
   "dash.card3": { tr: "Hesap Bilgileri", en: "Account Info" },
   "dash.note": { tr: "Not: \"Sistem Durumu\" ve \"Aktif Modüller\" kartları temsili/gösterim amaçlıdır.", en: "Note: the \"System Status\" and \"Active Modules\" cards are illustrative/for display purposes." },
 
+  "dash.tab_users": { tr: "Kullanıcılar", en: "Users" },
+  "dash.tab_security": { tr: "Güvenlik", en: "Security" },
+  "dash.filter_all": { tr: "Tümü", en: "All" },
+  "dash.table_last_login": { tr: "Son Giriş", en: "Last Login" },
+  "dash.table_ip": { tr: "IP", en: "IP" },
+  "dash.table_ua": { tr: "Cihaz / Tarayıcı", en: "Device / Browser" },
+  "dash.btn_force_logout": { tr: "Oturumları Sonlandır", en: "Force Logout" },
+
+  "dash.security_title": { tr: "Güvenlik Görünürlüğü", en: "Security Visibility" },
+  "dash.security_sub": { tr: "Son 24 saatteki giriş aktivitesi ve anomali tespiti", en: "Login activity and anomaly detection over the last 24 hours" },
+  "dash.sec_total": { tr: "24s Giriş Denemesi", en: "24h Login Attempts" },
+  "dash.sec_success": { tr: "Başarılı", en: "Successful" },
+  "dash.sec_fail": { tr: "Başarısız", en: "Failed" },
+  "dash.sec_ips": { tr: "Benzersiz IP", en: "Unique IPs" },
+  "dash.migration_warning": { tr: "<b>Not:</b> Güvenlik logları için <code>migration_v2.sql</code> henüz çalıştırılmamış görünüyor. README.md'deki D1 migration adımına bakın.", en: "<b>Note:</b> <code>migration_v2.sql</code> doesn't appear to have been run yet for security logs. See the D1 migration step in README.md." },
+  "dash.anomalies_title": { tr: "Tespit Edilen Anomaliler", en: "Detected Anomalies" },
+  "dash.recent_logins_title": { tr: "Son Giriş Denemeleri", en: "Recent Login Attempts" },
+  "dash.anomaly_bruteforce": { tr: "Olası Brute-Force Saldırısı", en: "Possible Brute-Force Attack" },
+  "dash.anomaly_credstuffing": { tr: "Olası Kimlik Bilgisi Saldırısı", en: "Possible Credential Stuffing" },
+  "dash.anomaly_attempts": { tr: "deneme (son 15 dk)", en: "attempts (last 15 min)" },
+  "dash.anomaly_diffips": { tr: "farklı IP", en: "different IPs" },
+  "dash.anomaly_none": { tr: "Şu anda tespit edilen bir anomali yok.", en: "No anomalies currently detected." },
+  "dash.log_success": { tr: "Başarılı", en: "Success" },
+  "dash.log_failed": { tr: "Başarısız", en: "Failed" },
+
   "dash.admin_title": { tr: "Kullanıcı Yönetimi", en: "User Management" },
   "dash.stats_total": { tr: "Toplam Kullanıcı", en: "Total Users" },
   "dash.stats_pending": { tr: "Onay Bekleyen", en: "Pending Approval" },
@@ -230,5 +256,6 @@ const translations = {
   "toast.promoted": { tr: "Kullanıcı yönetici yapıldı.", en: "User promoted to admin." },
   "toast.demoted": { tr: "Yönetici yetkisi alındı.", en: "Admin role removed." },
   "toast.deleted": { tr: "Kullanıcı silindi.", en: "User deleted." },
+  "toast.forced_logout": { tr: "Kullanıcının tüm oturumları sonlandırıldı.", en: "All sessions for this user were terminated." },
   "toast.error": { tr: "Bir hata oluştu.", en: "Something went wrong." }
 };
