@@ -84,3 +84,128 @@ export function jsonResponse(data, status = 200, extraHeaders = {}) {
 }
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* ======================================================
+   User-Agent basit ayrıştırma (analitik/güvenlik panelinde
+   IP'nin yanında "hangi cihaz/işletim sistemi/tarayıcı"
+   göstermek için). Tam bir UA-parser kütüphanesi değildir,
+   yaygın durumları kapsayan hafif bir regex setidir.
+====================================================== */
+export function parseUserAgent(ua) {
+  const s = (ua || "");
+
+  let device_type = "desktop";
+  if (/mobile|iphone|android.*mobile|windows phone/i.test(s)) device_type = "mobile";
+  else if (/ipad|tablet|android(?!.*mobile)/i.test(s)) device_type = "tablet";
+
+  let os = "Diğer";
+  if (/windows nt 10/i.test(s)) os = "Windows 10/11";
+  else if (/windows nt/i.test(s)) os = "Windows";
+  else if (/mac os x|macintosh/i.test(s)) os = "macOS";
+  else if (/android/i.test(s)) os = "Android";
+  else if (/iphone|ipad|ios/i.test(s)) os = "iOS";
+  else if (/linux/i.test(s)) os = "Linux";
+
+  let browser = "Diğer";
+  if (/edg\//i.test(s)) browser = "Edge";
+  else if (/opr\/|opera/i.test(s)) browser = "Opera";
+  else if (/chrome\//i.test(s) && !/chromium/i.test(s)) browser = "Chrome";
+  else if (/firefox\//i.test(s)) browser = "Firefox";
+  else if (/safari\//i.test(s) && !/chrome/i.test(s)) browser = "Safari";
+
+  return { device_type, os, browser };
+}
+
+/* ======================================================
+   2FA (TOTP - RFC 6238) — Google Authenticator / Authy gibi
+   uygulamalarla uyumlu, harici kütüphane olmadan Web Crypto
+   (HMAC-SHA1) kullanılarak.
+====================================================== */
+
+const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+export function base32Encode(bytes) {
+  let bits = 0, value = 0, output = "";
+  for (let i = 0; i < bytes.length; i++) {
+    value = (value << 8) | bytes[i];
+    bits += 8;
+    while (bits >= 5) {
+      output += BASE32_ALPHABET[(value >>> (bits - 5)) & 31];
+      bits -= 5;
+    }
+  }
+  if (bits > 0) {
+    output += BASE32_ALPHABET[(value << (5 - bits)) & 31];
+  }
+  return output;
+}
+
+export function base32Decode(str) {
+  const clean = str.toUpperCase().replace(/[^A-Z2-7]/g, "");
+  let bits = 0, value = 0;
+  const out = [];
+  for (let i = 0; i < clean.length; i++) {
+    const idx = BASE32_ALPHABET.indexOf(clean[i]);
+    if (idx === -1) continue;
+    value = (value << 5) | idx;
+    bits += 5;
+    if (bits >= 8) {
+      out.push((value >>> (bits - 8)) & 0xff);
+      bits -= 8;
+    }
+  }
+  return new Uint8Array(out);
+}
+
+export function generateTotpSecret() {
+  const bytes = crypto.getRandomValues(new Uint8Array(20));
+  return base32Encode(bytes);
+}
+
+export function totpOtpauthUri(secretBase32, email, issuer) {
+  const label = encodeURIComponent(`${issuer}:${email}`);
+  return `otpauth://totp/${label}?secret=${secretBase32}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
+}
+
+async function hmacSha1(keyBytes, msgBytes) {
+  const key = await crypto.subtle.importKey(
+    "raw", keyBytes, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, msgBytes);
+  return new Uint8Array(sig);
+}
+
+function intToBytes(num) {
+  // 8 byte big-endian counter (RFC 4226)
+  const buf = new ArrayBuffer(8);
+  const view = new DataView(buf);
+  // JS number güvenli tamsayı sınırında (2^53) yeterli, counter küçük olduğu için
+  view.setUint32(4, num % 0x100000000, false);
+  view.setUint32(0, Math.floor(num / 0x100000000), false);
+  return new Uint8Array(buf);
+}
+
+export async function totpCodeAtCounter(secretBase32, counter) {
+  const key = base32Decode(secretBase32);
+  const msg = intToBytes(counter);
+  const hmac = await hmacSha1(key, msg);
+  const offset = hmac[hmac.length - 1] & 0x0f;
+  const binCode = ((hmac[offset] & 0x7f) << 24)
+    | ((hmac[offset + 1] & 0xff) << 16)
+    | ((hmac[offset + 2] & 0xff) << 8)
+    | (hmac[offset + 3] & 0xff);
+  const code = (binCode % 1000000).toString().padStart(6, "0");
+  return code;
+}
+
+// Saat kaymalarını tolere etmek için ±1 adım (30sn) penceresiyle doğrular
+export async function verifyTotp(secretBase32, userCode, windowSteps = 1) {
+  const clean = (userCode || "").toString().replace(/\s+/g, "");
+  if (!/^\d{6}$/.test(clean)) return false;
+  const step = Math.floor(Date.now() / 1000 / 30);
+  for (let w = -windowSteps; w <= windowSteps; w++) {
+    const code = await totpCodeAtCounter(secretBase32, step + w);
+    if (timingSafeEqual(code, clean)) return true;
+  }
+  return false;
+}

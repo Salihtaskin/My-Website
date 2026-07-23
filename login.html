@@ -41,7 +41,16 @@
       <button type="submit" class="btn" id="login-submit" style="width:100%;justify-content:center;" data-i18n="login.btn">Giriş Yap</button>
     </form>
 
-    <div class="login-hint">
+    <form id="twofa-form" style="display:none;">
+      <div class="field">
+        <label data-i18n="login.2fa_label">Doğrulama Kodu (6 haneli)</label>
+        <input type="text" id="twofa-code" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" data-i18n-placeholder="login.2fa_placeholder" placeholder="123456">
+      </div>
+      <div class="login-msg" id="twofa-msg"></div>
+      <button type="submit" class="btn" id="twofa-submit" style="width:100%;justify-content:center;" data-i18n="login.2fa_btn">Doğrula</button>
+    </form>
+
+    <div class="login-hint" id="login-hint-wrap">
       <span data-i18n="login.no_account">Hesabın yok mu?</span>
       <a href="register.html" style="color:var(--neon);" data-i18n="login.register_link">Kayıt ol</a>
     </div>

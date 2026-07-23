@@ -12,6 +12,11 @@ let allUsers = [];
 let currentUser = null;
 let currentFilter = 'all';
 let securityLoaded = false;
+let analyticsLoaded = false;
+let blockedLoaded = false;
+let twofaLoaded = false;
+let contentLoaded = false;
+let chartInstances = {};
 
 function currentLang(){
   return localStorage.getItem('site_lang') || 'tr';
@@ -287,16 +292,35 @@ async function loadSecurity(){
 
 function initTabs(){
   const tabs = document.querySelectorAll('.admin-tab');
+  const panelIds = ['users','security','analytics','blocked','twofa','content'];
   tabs.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       tabs.forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
       const target = btn.dataset.tab;
-      document.getElementById('tab-users').style.display = target === 'users' ? 'block' : 'none';
-      document.getElementById('tab-security').style.display = target === 'security' ? 'block' : 'none';
+      panelIds.forEach(id=>{
+        const el = document.getElementById('tab-' + id);
+        if(el) el.style.display = (target === id) ? 'block' : 'none';
+      });
       if(target === 'security' && !securityLoaded){
         securityLoaded = true;
         loadSecurity();
+      }
+      if(target === 'analytics' && !analyticsLoaded){
+        analyticsLoaded = true;
+        loadAnalytics();
+      }
+      if(target === 'blocked' && !blockedLoaded){
+        blockedLoaded = true;
+        loadBlockedIps();
+      }
+      if(target === 'twofa' && !twofaLoaded){
+        twofaLoaded = true;
+        loadTwoFaStatus();
+      }
+      if(target === 'content' && !contentLoaded){
+        contentLoaded = true;
+        loadContentEditor();
       }
     });
   });
@@ -320,6 +344,21 @@ function initAdminPanel(){
     currentFilter = e.target.value;
     applyUserFilters();
   });
+
+  document.getElementById('block-ip-btn').addEventListener('click', handleManualBlock);
+  document.getElementById('blocked-ips-body').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-unblock-ip]');
+    if(!btn) return;
+    handleUnblock(btn.dataset.unblockIp);
+  });
+
+  document.getElementById('twofa-start-btn').addEventListener('click', startTwoFaSetup);
+  document.getElementById('twofa-confirm-btn').addEventListener('click', confirmTwoFaSetup);
+  document.getElementById('twofa-disable-btn').addEventListener('click', disableTwoFa);
+
+  document.getElementById('content-key-select').addEventListener('change', renderSelectedContentKey);
+  document.getElementById('content-save-btn').addEventListener('click', saveContentKey);
+  document.getElementById('content-reset-btn').addEventListener('click', resetContentKey);
 }
 
 function initLogout(){
@@ -329,6 +368,332 @@ function initLogout(){
     await fetch('/api/logout', { method: 'POST', credentials: 'same-origin' }).catch(()=>{});
     window.location.href = 'login.html';
   });
+}
+
+/* ---------------- Analitik sekmesi ---------------- */
+
+function destroyChart(id){
+  if(chartInstances[id]){
+    chartInstances[id].destroy();
+    delete chartInstances[id];
+  }
+}
+
+function renderPieChart(canvasId, rows, labelField, valueField){
+  destroyChart(canvasId);
+  const ctx = document.getElementById(canvasId);
+  if(!ctx || typeof Chart === 'undefined') return;
+  const labels = rows.map(r => r[labelField] || '—');
+  const data = rows.map(r => r[valueField] || 0);
+  const palette = ['#00ff9d','#00b8ff','#ffbd2e','#ff5f56','#8a7cff','#ff7ce5','#5ce1e6','#c9d1c9'];
+  chartInstances[canvasId] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: palette }] },
+    options: {
+      plugins: { legend: { position: 'bottom', labels: { color: '#c9d1c9', boxWidth: 12 } } },
+      maintainAspectRatio: true
+    }
+  });
+}
+
+function renderTopPages(rows){
+  const tbody = document.getElementById('top-pages-body');
+  tbody.innerHTML = rows.length
+    ? rows.map(r => `<tr><td>${escapeHtml(r.path || '—')}</td><td>${r.cnt}</td></tr>`).join('')
+    : `<tr><td colspan="2" style="text-align:center;color:var(--text-dim);">${t('dash.no_users')}</td></tr>`;
+}
+
+function renderRecentVisits(rows){
+  const tbody = document.getElementById('recent-visits-body');
+  tbody.innerHTML = rows.length
+    ? rows.map(r => `
+        <tr>
+          <td>${formatDate(r.created_at)}</td>
+          <td class="mono-cell">${escapeHtml(r.ip || '—')}</td>
+          <td>${escapeHtml(r.country || '—')}</td>
+          <td>${escapeHtml(r.device_type || '—')}</td>
+          <td>${escapeHtml((r.browser || '—') + ' / ' + (r.os || '—'))}</td>
+          <td>${escapeHtml(r.path || '—')}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">${t('dash.no_users')}</td></tr>`;
+}
+
+async function loadAnalytics(){
+  try{
+    const res = await fetch('/api/admin/analytics', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+
+    document.getElementById('analytics-migration-warning').style.display = data.migration_required ? 'block' : 'none';
+    document.getElementById('an-live').textContent = data.live_visitors || 0;
+    document.getElementById('an-today-visits').textContent = (data.today && data.today.cnt) || 0;
+    document.getElementById('an-today-unique').textContent = (data.today && data.today.unique_ips) || 0;
+
+    renderPieChart('chart-device', data.by_device || [], 'device_type', 'cnt');
+    renderPieChart('chart-browser', data.by_browser || [], 'browser', 'cnt');
+    renderPieChart('chart-os', data.by_os || [], 'os', 'cnt');
+    renderPieChart('chart-country', data.by_country || [], 'country', 'cnt');
+
+    renderTopPages(data.top_pages || []);
+    renderRecentVisits(data.recent || []);
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+/* ---------------- Engellenen IP'ler sekmesi ---------------- */
+
+function renderBlockedIps(rows){
+  const tbody = document.getElementById('blocked-ips-body');
+  if(!rows.length){
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-dim);">${t('dash.no_blocked')}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td class="mono-cell">${escapeHtml(r.ip)}</td>
+      <td>${escapeHtml(r.reason || '—')}</td>
+      <td>${formatDate(r.blocked_at)}</td>
+      <td>${r.blocked_until ? formatDate(r.blocked_until) : t('dash.blocked_permanent')}</td>
+      <td class="actions-cell"><button class="btn-mini" data-unblock-ip="${escapeHtml(r.ip)}">${t('dash.btn_unblock')}</button></td>
+    </tr>
+  `).join('');
+}
+
+async function loadBlockedIps(){
+  try{
+    const res = await fetch('/api/admin/blocked-ips', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    renderBlockedIps(data.blocked || []);
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+async function handleManualBlock(){
+  const ip = document.getElementById('block-ip-input').value.trim();
+  const reason = document.getElementById('block-reason-input').value.trim();
+  const minutesRaw = document.getElementById('block-minutes-input').value.trim();
+  if(!ip) return;
+
+  try{
+    const res = await fetch('/api/admin/blocked-ips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'block', ip, reason, minutes: minutesRaw ? Number(minutesRaw) : null })
+    });
+    if(res.ok){
+      showToast('toast.blocked', 'ok');
+      document.getElementById('block-ip-input').value = '';
+      document.getElementById('block-reason-input').value = '';
+      document.getElementById('block-minutes-input').value = '';
+      loadBlockedIps();
+    } else {
+      showToast('toast.error', 'error');
+    }
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+async function handleUnblock(ip){
+  try{
+    const res = await fetch('/api/admin/blocked-ips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'unblock', ip })
+    });
+    if(res.ok){
+      showToast('toast.unblocked', 'ok');
+      loadBlockedIps();
+    } else {
+      showToast('toast.error', 'error');
+    }
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+/* ---------------- 2FA sekmesi ---------------- */
+
+async function loadTwoFaStatus(){
+  try{
+    const res = await fetch('/api/admin/2fa-setup', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+
+    const statusEl = document.getElementById('twofa-status');
+    const setupBlock = document.getElementById('twofa-setup-block');
+    const startBtn = document.getElementById('twofa-start-btn');
+    const disableBlock = document.getElementById('twofa-disable-block');
+
+    if(data.enabled){
+      statusEl.innerHTML = `<span class="badge badge-approved">${t('dash.2fa_enabled_msg')}</span>`;
+      setupBlock.style.display = 'none';
+      startBtn.style.display = 'none';
+      disableBlock.style.display = 'block';
+    } else {
+      // GET her zaman (onaylanmamış) bir secret üretir/yeniden döner, bu yüzden
+      // ayrı bir "başlat" adımına gerek yok: doğrudan kurulum bloğunu göster.
+      statusEl.innerHTML = `<span class="badge badge-pending">${t('dash.2fa_disabled_msg')}</span>`;
+      disableBlock.style.display = 'none';
+      startBtn.style.display = 'none';
+      document.getElementById('twofa-secret').textContent = data.secret || '—';
+      setupBlock.style.display = 'block';
+    }
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+async function startTwoFaSetup(){
+  await loadTwoFaStatus();
+}
+
+async function confirmTwoFaSetup(){
+  const code = document.getElementById('twofa-confirm-code').value.trim();
+  if(!code) return;
+  try{
+    const res = await fetch('/api/admin/2fa-setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json().catch(()=>({}));
+    if(res.ok && data.ok){
+      showToast('toast.2fa_enabled', 'ok');
+      document.getElementById('twofa-confirm-code').value = '';
+      loadTwoFaStatus();
+    } else {
+      showToast('toast.invalid_code', 'error');
+    }
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+async function disableTwoFa(){
+  const code = document.getElementById('twofa-disable-code').value.trim();
+  if(!code) return;
+  try{
+    const res = await fetch('/api/admin/2fa-disable', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json().catch(()=>({}));
+    if(res.ok && data.ok){
+      showToast('toast.2fa_disabled', 'ok');
+      document.getElementById('twofa-disable-code').value = '';
+      loadTwoFaStatus();
+    } else {
+      showToast('toast.invalid_code', 'error');
+    }
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+/* ---------------- İçerik (CMS) sekmesi ---------------- */
+
+let contentOverrides = {};
+
+function populateContentKeySelect(){
+  const select = document.getElementById('content-key-select');
+  select.innerHTML = '';
+  Object.keys(translations).sort().forEach(key=>{
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = key;
+    select.appendChild(opt);
+  });
+}
+
+function renderSelectedContentKey(){
+  const key = document.getElementById('content-key-select').value;
+  const override = contentOverrides[key] || {};
+  const def = translations[key] || { tr: '', en: '' };
+  document.getElementById('content-tr-input').value = override.tr || def.tr || '';
+  document.getElementById('content-en-input').value = override.en || def.en || '';
+}
+
+function renderContentOverridesList(){
+  const container = document.getElementById('content-overrides-list');
+  const keys = Object.keys(contentOverrides);
+  if(!keys.length){
+    container.innerHTML = `<div class="anomaly-card ok">${t('dash.content_none')}</div>`;
+    return;
+  }
+  container.innerHTML = keys.map(key => `
+    <div class="anomaly-card warn" style="margin-bottom:10px;">
+      <div class="anomaly-title mono-cell">${escapeHtml(key)}</div>
+      <div class="anomaly-detail">TR: ${escapeHtml((contentOverrides[key].tr || '').slice(0,80))}</div>
+      <div class="anomaly-detail">EN: ${escapeHtml((contentOverrides[key].en || '').slice(0,80))}</div>
+    </div>
+  `).join('');
+}
+
+async function loadContentEditor(){
+  populateContentKeySelect();
+  try{
+    const res = await fetch('/api/admin/content', { credentials: 'same-origin' });
+    if(res.ok){
+      const data = await res.json();
+      contentOverrides = data.overrides || {};
+    }
+  } catch(err){ /* sessizce geç, varsayılanlarla devam */ }
+  renderSelectedContentKey();
+  renderContentOverridesList();
+}
+
+async function saveContentKey(){
+  const key = document.getElementById('content-key-select').value;
+  const tr = document.getElementById('content-tr-input').value;
+  const en = document.getElementById('content-en-input').value;
+  try{
+    const res = await fetch('/api/admin/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'save', key, tr, en })
+    });
+    if(res.ok){
+      showToast('toast.saved', 'ok');
+      contentOverrides[key] = { tr, en };
+      renderContentOverridesList();
+    } else {
+      showToast('toast.error', 'error');
+    }
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+async function resetContentKey(){
+  const key = document.getElementById('content-key-select').value;
+  try{
+    const res = await fetch('/api/admin/content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'reset', key })
+    });
+    if(res.ok){
+      showToast('toast.reset', 'ok');
+      delete contentOverrides[key];
+      renderSelectedContentKey();
+      renderContentOverridesList();
+    } else {
+      showToast('toast.error', 'error');
+    }
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', async ()=>{

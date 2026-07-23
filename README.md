@@ -146,3 +146,80 @@ python3 -m http.server 8080
 - Admin uç noktaları (`/api/admin/*`) her istekte oturumun `role = 'admin'` olduğunu kontrol eder.
 - IP adresi ve tarayıcı bilgisi gibi kişisel sayılabilecek veriler yalnızca güvenlik/anomali tespiti amacıyla `login_events` tablosunda tutulur. İstersen zaman zaman `DELETE FROM login_events WHERE created_at < datetime('now','-30 days');` gibi bir sorguyla eski kayıtları temizleyebilirsin.
 - Sitedeki "sızma testi / saldırı" temalı metinler ve terminal/matrix görselleri **temsili**dir, gerçek exploit kodu içermez. Kendi sitene karşı test yapman kendi mülkiyetinde olduğu için sorun değildir; izniniz olmayan üçüncü taraf sistemlere karşı test/saldırı yapmak birçok ülkede suçtur.
+
+---
+
+## v3 Güncellemeleri (2FA, ziyaretçi analitiği, IP engelleme, CMS, günlük e-posta özeti)
+
+Bu paket sitene şu yeni özellikleri ekliyor: gerçek zamanlı ziyaretçi sayacı + cihaz/ülke/tarayıcı grafikleri, admin girişi için 2FA (TOTP), otomatik brute-force IP engelleme + elle IP engelleme paneli, kod yazmadan içerik düzenleme (basit CMS), ve günlük özet e-postası.
+
+### 1) D1 Migration'ı çalıştır
+
+`migration_v2.sql`'i zaten çalıştırdıysan (v2 güncellemesi kuruluysa), şimdi de `migration_v3.sql` dosyasının tamamını Cloudflare Dashboard → D1 veritabanın → **Console** sekmesine yapıştırıp çalıştır. Mevcut hiçbir veriyi silmez, sadece yeni tablo/sütun ekler.
+
+Migration çalıştırılmadan da site bozulmaz — yeni özellikler sessizce "veri yok" gösterir, admin panelinde ilgili sekmede küçük bir uyarı çıkar.
+
+### 2) Yeni admin sekmeleri (`dashboard.html`)
+
+- **Analitik:** şu an sitede kaç kişi var (son 5 dk), bugünkü ziyaret/benzersiz IP sayısı, cihaz/tarayıcı/işletim sistemi/ülke dağılım grafikleri (Chart.js), en çok ziyaret edilen sayfalar, son ziyaretlerin ham listesi.
+- **Engellenen IP'ler:** otomatik (brute-force) veya elle eklediğin IP engellerinin listesi; elle IP ekleme (süreli veya süresiz) ve kaldırma.
+- **2FA:** kendi admin hesabın için TOTP tabanlı iki faktörlü doğrulamayı açma/kapatma (Google Authenticator, Authy vb. ile uyumlu).
+- **İçerik:** `translations.js`'teki herhangi bir metni (ör. `hero.desc`, `about.text`) kod yazmadan, panelden TR/EN olarak değiştirme. "Varsayılana Döndür" ile geri alınabilir.
+
+### 3) Otomatik IP engelleme nasıl çalışıyor?
+
+Aynı IP'den 15 dakika içinde 5 veya daha fazla başarısız giriş denemesi olursa, o IP otomatik olarak 1 saatliğine engellenir (`functions/_middleware.js` her istekte kontrol eder). Admin panelindeki **Engellenen IP'ler** sekmesinden süresi dolmadan da kaldırabilirsin.
+
+### 4) 2FA nasıl kurulur?
+
+1. Dashboard → **2FA** sekmesi → ekrandaki "Gizli Anahtar"ı Google Authenticator / Authy gibi bir uygulamaya **manuel giriş** ile ekle (QR okutma istersen `otpauth://` URI'sini bir QR üretici ile görsele çevirebilirsin, uygulama şu an sadece metin anahtarı gösteriyor).
+2. Uygulamanın gösterdiği 6 haneli kodu gir → **Etkinleştir**.
+3. Bundan sonra giriş yaparken şifreden sonra bu kodu da isteyecek. 2FA'yı kapatmak için yine geçerli bir kod girmen gerekir (çalınmış bir oturum çerezinin tek başına 2FA'yı kapatamaması için).
+
+### 5) Günlük özet e-postası — kurulum ZORUNLU adımlar
+
+Bu özellik, Cloudflare Pages'in kendi başına zamanlanmış görev (cron) çalıştıramaması nedeniyle **GitHub Actions** üzerinden tetiklenir (`.github/workflows/daily-summary.yml`, her gün 09:00 Türkiye saatinde).
+
+**a) Resend hesabı aç (e-posta göndermek için, ücretsiz):**
+1. https://resend.com adresinden ücretsiz kaydol.
+2. **API Keys** bölümünden bir anahtar oluştur.
+3. Kendi domainini doğrulamadıysan, gönderen adres olarak `onboarding@resend.dev` kullanabilirsin (Resend'in test göndereni) — sadece kendi hesabınla kayıtlı e-postaya gönderim yapabilir, bu senin durumunda sorun değil.
+
+**b) Cloudflare Pages ortam değişkenlerini ekle:**
+
+Pages projen → **Settings** → **Environment variables** → şunları ekle (Production):
+- `RESEND_API_KEY` → Resend'den aldığın anahtar
+- `CRON_SECRET` → kendi uydurduğun uzun rastgele bir metin (ör. bir şifre üretici ile 32+ karakter)
+- `ADMIN_EMAIL` → `salihtaskin282282@gmail.com` (boş bırakırsan zaten bu adrese düşer)
+- `FROM_EMAIL` → `onboarding@resend.dev` (kendi domainini Resend'de doğrularsan değiştirebilirsin)
+
+**c) GitHub Actions secret'ı ekle:**
+
+GitHub reponda → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**:
+- Name: `CRON_SECRET`
+- Value: Cloudflare'e yukarıda girdiğin **aynı** değer
+
+Bu iki `CRON_SECRET` değeri birebir aynı olmalı — biri isteği gönderirken kimlik kanıtı olarak, diğeri sunucuda bu isteği doğrulamak için kullanılır.
+
+**d) Test et:**
+
+GitHub reponda **Actions** sekmesi → "Günlük özet e-postası" workflow'u → **Run workflow** ile elle tetikleyip e-postanın gelip gelmediğini kontrol edebilirsin.
+
+### 6) Ziyaretçi analitiği hakkında not
+
+`js/main.js`, her sayfa yüklendiğinde `/api/track` uç noktasına anonim bir "ping" gönderir (IP, ülke, cihaz/tarayıcı/işletim sistemi, hangi sayfa). Bu veri sadece admin panelindeki **Analitik** sekmesinde görünür, üçüncü taraflarla paylaşılmaz. IP adresi KVKK kapsamında kişisel veri sayıldığı için, sitene küçük bir gizlilik bildirimi eklemeni öneririm (bunu da hazırlayabilirim, istersen söyle).
+
+### 7) Güvenlik header'ları
+
+`_headers` dosyası eklendi: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy. Cloudflare Pages bu dosyayı otomatik okur, ekstra bir ayar gerekmez.
+
+### 8) Yeni dosyalar özeti
+
+- `migration_v3.sql` — yeni tablolar/sütunlar
+- `functions/_middleware.js` — global IP engelleme kontrolü
+- `functions/api/track.js`, `functions/api/admin/analytics.js` — ziyaretçi analitiği
+- `functions/api/admin/blocked-ips.js` — IP engelleme yönetimi
+- `functions/api/admin/2fa-setup.js`, `2fa-disable.js`, `functions/api/verify-2fa.js` — 2FA
+- `functions/api/content.js`, `functions/api/admin/content.js` — basit CMS
+- `functions/api/admin/daily-summary.js`, `.github/workflows/daily-summary.yml` — günlük e-posta
+- `_headers` — güvenlik header'ları

@@ -27,8 +27,23 @@ export async function onRequestPost(context) {
       return jsonResponse({ error: "email_exists" }, 409);
     }
 
-    const { hash, salt } = await hashPassword(password);
     const ip = context.request.headers.get("CF-Connecting-IP") || "unknown";
+
+    // Basit oran sınırlama: aynı IP'den saatte 5'ten fazla kayıt denemesi engellenir
+    // (spam/otomasyon kayıt saldırılarına karşı).
+    if (ip !== "unknown") {
+      try {
+        const recentCount = await context.env.DB.prepare(
+          `SELECT COUNT(*) AS cnt FROM users
+           WHERE registered_ip = ? AND created_at >= datetime('now', '-1 hour')`
+        ).bind(ip).first();
+        if (recentCount && recentCount.cnt >= 5) {
+          return jsonResponse({ error: "rate_limited" }, 429);
+        }
+      } catch (e) { /* registered_ip sütunu henüz yoksa sessizce geç */ }
+    }
+
+    const { hash, salt } = await hashPassword(password);
 
     try {
       await context.env.DB.prepare(

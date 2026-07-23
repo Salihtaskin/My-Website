@@ -67,6 +67,10 @@
     <div class="admin-tabs">
       <button class="admin-tab active" data-tab="users" data-i18n="dash.tab_users">Kullanıcılar</button>
       <button class="admin-tab" data-tab="security" data-i18n="dash.tab_security">Güvenlik</button>
+      <button class="admin-tab" data-tab="analytics" data-i18n="dash.tab_analytics">Analitik</button>
+      <button class="admin-tab" data-tab="blocked" data-i18n="dash.tab_blocked">Engellenen IP'ler</button>
+      <button class="admin-tab" data-tab="twofa" data-i18n="dash.tab_2fa">2FA</button>
+      <button class="admin-tab" data-tab="content" data-i18n="dash.tab_content">İçerik</button>
     </div>
 
     <!-- TAB: Kullanıcılar -->
@@ -150,9 +154,152 @@
         </table>
       </div>
     </div>
+
+    <!-- TAB: Analitik -->
+    <div id="tab-analytics" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.analytics_title">Ziyaretçi Analitiği</h2>
+      <div class="section-sub" data-i18n="dash.analytics_sub">Son 30 günün cihaz, tarayıcı, işletim sistemi ve ülke dağılımı</div>
+
+      <div id="analytics-migration-warning" class="alert-banner" style="display:none;margin-top:0;margin-bottom:30px;max-width:none;" data-i18n="dash.migration_v3_warning" data-i18n-html>
+        <b>Not:</b> Bu özellik için migration_v3.sql henüz çalıştırılmamış görünüyor.
+      </div>
+
+      <div class="dash-grid" style="margin-bottom:30px;">
+        <div class="dash-card"><h4 data-i18n="dash.live_now">Şu An Sitede</h4><div class="stat-num ok" id="an-live">0</div></div>
+        <div class="dash-card"><h4 data-i18n="dash.today_visits">Bugün Ziyaret</h4><div class="stat-num" id="an-today-visits">0</div></div>
+        <div class="dash-card"><h4 data-i18n="dash.today_unique">Bugün Benzersiz IP</h4><div class="stat-num" id="an-today-unique">0</div></div>
+      </div>
+
+      <div class="dash-grid" style="margin-bottom:30px;">
+        <div class="dash-card">
+          <h4 data-i18n="dash.chart_device">Cihaz Türü</h4>
+          <canvas id="chart-device" height="180"></canvas>
+        </div>
+        <div class="dash-card">
+          <h4 data-i18n="dash.chart_browser">Tarayıcı</h4>
+          <canvas id="chart-browser" height="180"></canvas>
+        </div>
+        <div class="dash-card">
+          <h4 data-i18n="dash.chart_os">İşletim Sistemi</h4>
+          <canvas id="chart-os" height="180"></canvas>
+        </div>
+        <div class="dash-card">
+          <h4 data-i18n="dash.chart_country">Ülke</h4>
+          <canvas id="chart-country" height="180"></canvas>
+        </div>
+      </div>
+
+      <h4 style="color:var(--neon);margin-bottom:14px;" data-i18n="dash.top_pages">En Çok Ziyaret Edilen Sayfalar</h4>
+      <div class="table-wrap" style="margin-bottom:34px;">
+        <table class="user-table">
+          <thead><tr><th data-i18n="dash.table_path">Sayfa</th><th>#</th></tr></thead>
+          <tbody id="top-pages-body"></tbody>
+        </table>
+      </div>
+
+      <h4 style="color:var(--neon);margin-bottom:14px;" data-i18n="dash.recent_visits">Son Ziyaretler</h4>
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th data-i18n="dash.table_date">Zaman</th>
+              <th data-i18n="dash.table_ip">IP</th>
+              <th data-i18n="dash.table_country">Ülke</th>
+              <th data-i18n="dash.table_device">Cihaz</th>
+              <th data-i18n="dash.table_ua">Tarayıcı/OS</th>
+              <th data-i18n="dash.table_path">Sayfa</th>
+            </tr>
+          </thead>
+          <tbody id="recent-visits-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: Engellenen IP'ler -->
+    <div id="tab-blocked" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.blocked_title">Engellenen IP Adresleri</h2>
+      <div class="section-sub" data-i18n="dash.blocked_sub">Otomatik (brute-force) veya elle eklenen engeller</div>
+
+      <div class="dash-card" style="max-width:640px;margin-bottom:30px;">
+        <h4 data-i18n="dash.block_manual_title">Elle IP Engelle</h4>
+        <div class="table-toolbar" style="flex-wrap:wrap;">
+          <input type="text" id="block-ip-input" class="search-input" data-i18n-placeholder="dash.block_ip_placeholder" placeholder="IP adresi" style="max-width:200px;">
+          <input type="text" id="block-reason-input" class="search-input" data-i18n-placeholder="dash.block_reason_placeholder" placeholder="Sebep (opsiyonel)" style="max-width:220px;">
+          <input type="number" id="block-minutes-input" class="search-input" data-i18n-placeholder="dash.block_minutes_placeholder" placeholder="Dakika (boş = süresiz)" style="max-width:200px;">
+          <button class="btn" id="block-ip-btn" data-i18n="dash.btn_block">Engelle</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th data-i18n="dash.table_ip">IP</th>
+              <th data-i18n="dash.table_reason">Sebep</th>
+              <th data-i18n="dash.table_blocked_at">Engellenme Zamanı</th>
+              <th data-i18n="dash.table_blocked_until">Süre</th>
+              <th data-i18n="dash.table_actions">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="blocked-ips-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: 2FA -->
+    <div id="tab-twofa" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.2fa_title">İki Faktörlü Doğrulama (2FA)</h2>
+      <div class="section-sub" data-i18n="dash.2fa_sub">Yönetici hesabın için ekstra bir güvenlik katmanı</div>
+
+      <div class="dash-card" style="max-width:560px;">
+        <div id="twofa-status" style="margin-bottom:16px;"></div>
+
+        <div id="twofa-setup-block" style="display:none;">
+          <p data-i18n="dash.2fa_setup_hint">Aşağıdaki anahtarı Google Authenticator, Authy gibi bir uygulamaya manuel olarak ekle, ardından uygulamanın gösterdiği 6 haneli kodu gir.</p>
+          <p><b data-i18n="dash.2fa_secret_label">Gizli Anahtar</b>: <span class="mono-cell" id="twofa-secret">—</span></p>
+          <div class="table-toolbar">
+            <input type="text" id="twofa-confirm-code" class="search-input" data-i18n-placeholder="dash.2fa_code_placeholder" placeholder="6 haneli kod" style="max-width:180px;">
+            <button class="btn" id="twofa-confirm-btn" data-i18n="dash.btn_2fa_confirm">Etkinleştir</button>
+          </div>
+        </div>
+
+        <button class="btn" id="twofa-start-btn" data-i18n="dash.btn_2fa_start" style="display:none;">2FA Kurulumunu Başlat</button>
+
+        <div id="twofa-disable-block" style="display:none;">
+          <div class="table-toolbar">
+            <input type="text" id="twofa-disable-code" class="search-input" data-i18n-placeholder="dash.2fa_code_placeholder" placeholder="6 haneli kod" style="max-width:180px;">
+            <button class="btn btn-alt" id="twofa-disable-btn" data-i18n="dash.btn_2fa_disable">2FA'yı Kapat</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: İçerik (CMS) -->
+    <div id="tab-content" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.content_title">Site İçeriği Düzenle</h2>
+      <div class="section-sub" data-i18n="dash.content_sub">Kod yazmadan sitedeki metinleri değiştir. Bir anahtar seç, TR/EN metni düzenle, kaydet.</div>
+
+      <div class="dash-card" style="max-width:720px;margin-bottom:30px;">
+        <label data-i18n="dash.content_key_label" style="display:block;margin-bottom:6px;">Metin Anahtarı</label>
+        <select id="content-key-select" class="filter-select" style="width:100%;max-width:none;margin-bottom:14px;"></select>
+
+        <label data-i18n="dash.content_tr_label" style="display:block;margin-bottom:6px;">Türkçe Metin</label>
+        <textarea id="content-tr-input" rows="3" style="width:100%;margin-bottom:14px;background:var(--bg-alt,#0d1210);color:var(--text,#c9d1c9);border:1px solid var(--border,#233);border-radius:6px;padding:8px;font-family:inherit;"></textarea>
+
+        <label data-i18n="dash.content_en_label" style="display:block;margin-bottom:6px;">İngilizce Metin</label>
+        <textarea id="content-en-input" rows="3" style="width:100%;margin-bottom:14px;background:var(--bg-alt,#0d1210);color:var(--text,#c9d1c9);border:1px solid var(--border,#233);border-radius:6px;padding:8px;font-family:inherit;"></textarea>
+
+        <button class="btn" id="content-save-btn" data-i18n="dash.btn_save">Kaydet</button>
+        <button class="btn btn-alt" id="content-reset-btn" data-i18n="dash.btn_reset_default">Varsayılana Döndür</button>
+      </div>
+
+      <h4 style="color:var(--neon);margin-bottom:14px;" data-i18n="dash.content_overrides_title">Özelleştirilmiş Metinler</h4>
+      <div id="content-overrides-list"></div>
+    </div>
   </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script src="js/translations.js"></script>
 <script src="js/main.js"></script>
 <script src="js/dashboard.js"></script>

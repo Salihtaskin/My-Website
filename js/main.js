@@ -135,9 +135,42 @@ function initReveal(){
   });
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{
+// ---------- CMS: admin panelinden düzenlenen içerik override'ları ----------
+// /api/content herkese açıktır; sadece admin panelinden değiştirilmiş
+// metinleri döner. Bulunursa translations.js'teki varsayılanın üzerine yazılır.
+async function applyContentOverrides(){
+  try{
+    const res = await fetch('/api/content');
+    if(!res.ok) return;
+    const data = await res.json();
+    const overrides = data.overrides || {};
+    Object.keys(overrides).forEach(key=>{
+      if(!translations[key]) return;
+      if(overrides[key].tr) translations[key].tr = overrides[key].tr;
+      if(overrides[key].en) translations[key].en = overrides[key].en;
+    });
+  } catch(e){ /* varsayılan metinlerle devam et */ }
+}
+
+// ---------- Ziyaretçi analitiği (anonim ping) ----------
+// Admin panelindeki "Analitik" sekmesi için: sadece IP/UA/ülke/sayfa
+// yolu kaydedilir, kişisel/hassas bir veri gönderilmez.
+function sendVisitPing(){
+  try{
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: window.location.pathname }),
+      keepalive: true
+    }).catch(()=>{});
+  } catch(e){ /* sessizce geç */ }
+}
+
+document.addEventListener('DOMContentLoaded', async ()=>{
   initMatrix();
   initNavToggle();
+  await applyContentOverrides();
   initLanguage();
   initReveal();
+  sendVisitPing();
 });

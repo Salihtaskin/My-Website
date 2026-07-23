@@ -632,6 +632,7 @@ footer .made{ color: var(--neon-dim); }
 /* ---------- Admin tabs ---------- */
 .admin-tabs{
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin-bottom: 34px;
   border-bottom: 1px solid var(--border);

@@ -108,6 +108,7 @@ function initRegisterForm(){
       else if(data.error === 'invalid_email') key = 'register.err_email_invalid';
       else if(data.error === 'weak_password') key = 'register.err_password_weak';
       else if(data.error === 'missing_fields') key = 'register.err_missing';
+      else if(data.error === 'rate_limited') key = 'register.err_rate_limited';
       msg.textContent = translations[key][lang];
       msg.className = 'login-msg error';
     } catch(err){
