@@ -734,10 +734,11 @@ const SETTINGS_FIELD_IDS = {
   "badge.streak_days": "setting-badge-streak_days",
   "badge.login_count_milestone": "setting-badge-login_count_milestone",
   "terminal.refresh_seconds": "setting-terminal-refresh_seconds",
-  "terminal.max_events": "setting-terminal-max_events"
+  "terminal.max_events": "setting-terminal-max_events",
+  "feature.hack_prank": "setting-feature-hack_prank"
 };
 
-const BOOLEAN_SETTING_KEYS = ["feature.threat_level", "feature.terminal_log", "feature.quiz", "feature.badges"];
+const BOOLEAN_SETTING_KEYS = ["feature.threat_level", "feature.terminal_log", "feature.quiz", "feature.badges", "feature.hack_prank"];
 
 async function loadSettingsTab(){
   try{

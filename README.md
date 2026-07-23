@@ -259,3 +259,29 @@ Artık sadece admin değil, onaylı her kullanıcı dashboard'da yeni bir **Hesa
 - `functions/api/admin/quiz-questions.js` — admin soru yönetimi (ekle/aktif-pasif/sil)
 
 Migration çalıştırılmadan da site bozulmaz — yeni özellikler "kapalı" gibi davranır, admin panelinde ilgili yerde küçük bir uyarı çıkar.
+
+---
+
+## v5 Güncellemeleri (Ana sayfa şakaları: foto+terminal, Konami kod, konsol mesajı, sahte yükleme)
+
+### ÖNEMLİ — bu adımı atlama
+
+Foto+terminal şakasının çalışması için `assets/prank.jpg` adında bir fotoğraf dosyası eklemen gerekiyor. Bu pakette o dosya YOK — kendi bilgisayarındaki fotoğrafı `assets/` klasörüne `prank.jpg` adıyla kopyala, sonra `git add . && git commit && git push` yaparken o da gitsin. Dosya orada yoksa şaka ekranı kırık bir resim ikonuyla görünür ama site çökmez.
+
+### Neler eklendi
+
+- **Foto + terminal şakası:** Ana sayfayı ziyaret eden biri sayfayla ilk etkileşime girdiğinde (tıklama/tuş/scroll — tarayıcıların "kullanıcı etkileşimi olmadan ses çalınamaz" kuralı yüzünden tam sayfa yüklenir yüklenmez değil, ilk dokunuşta tetikleniyor) önce `assets/prank.jpg` fotoğrafı + alarm sesiyle (isusiber.netlify.app'teki ile birebir aynı ses) tam ekran açılıyor, sonra terminal tarzında ziyaretçinin gerçek IP/ülke/cihaz bilgisi akıyor, en sonda "sadece şakaydı" açıklaması çıkıyor. Ayarlar sekmesinden açıp kapatabilirsin.
+- **Konami kodu:** ↑ ↑ ↓ ↓ ← → ← → B A tuş sırasına basılınca "PENETRASYON TESTİ TAMAMLANDI" rozeti kısa süreliğine ekranda beliriyor.
+- **Konsol mesajı:** Meraklı biri F12/DevTools konsolunu açarsa orada senin adına, iletişim bilgilerine ve GitHub'ına yönlendiren stilize bir mesaj görüyor.
+- **Sahte yükleme ekranı:** Ana sayfa ilk açıldığında ~1-1.5 saniye "güvenlik duvarı aşılıyor %XX" yazan sahte bir progress bar görünüp kayboluyor, tema/atmosfer için.
+
+### Yeni/değişen dosyalar
+
+- `js/prank.js` — foto+terminal şakası
+- `functions/api/whoami.js` — ziyaretçinin kendi IP/ülke/cihaz bilgisini döner (şaka ekranı için)
+- `functions/api/settings.js` artık giriş şartı olmadan herkese açık (ana sayfanın da ayarları okuyabilmesi için — içindeki değerler zaten hassas değil)
+- `migration_v5.sql` — `feature.hack_prank` ayarı
+- `js/main.js` — Konami kod + konsol mesajı + sahte yükleme ekranı mantığı
+- `index.html` — sahte yükleme ekranı HTML'i + prank.js script etiketi
+
+Migration çalıştırılmadan da site bozulmaz (varsayılan olarak açık davranır).

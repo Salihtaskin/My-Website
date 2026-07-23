@@ -1,12 +1,10 @@
-import { getSessionUser, jsonResponse, getAllSettings } from "../_lib/auth.js";
+import { jsonResponse, getAllSettings } from "../_lib/auth.js";
 
-// Oturum açmış herhangi bir kullanıcı (admin olması şart değil) çağırabilir.
-// Sadece kullanıcı tarafındaki özelliklerin (quiz, rozet) açık/kapalı olduğunu
-// öğrenmek için; eşik değerleri gibi hassas olmayan bilgiler döner.
+// Herkese açık (giriş gerektirmez). Buradaki değerler sadece
+// aç/kapa bayrakları ve eşik sayılarıdır — hiçbiri hassas veri
+// değildir, bu yüzden ana sayfa (şaka ekranı gibi anonim ziyaretçi
+// özellikleri) ve dashboard (quiz/rozet) aynı uç noktayı kullanabilir.
 export async function onRequestGet(context) {
-  const user = await getSessionUser(context);
-  if (!user) return jsonResponse({ error: "unauthorized" }, 401);
-
   const settings = await getAllSettings(context.env.DB);
   return jsonResponse({ settings });
 }

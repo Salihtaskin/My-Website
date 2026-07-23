@@ -166,11 +166,83 @@ function sendVisitPing(){
   } catch(e){ /* sessizce geç */ }
 }
 
+// ---------- Konsol (DevTools/F12) mesajı ----------
+// Meraklı bir geliştirici konsolu açarsa küçük bir selam bırakalım.
+function printConsoleMessage(){
+  const style1 = 'color:#00ff9d;font-family:monospace;font-size:18px;font-weight:bold;';
+  const style2 = 'color:#7fa896;font-family:monospace;font-size:13px;';
+  console.log('%c> whoami', style1);
+  console.log('%cSalih Taşkın — Siber Güvenlik Öğrencisi & Pentest Meraklısı', style1);
+  console.log('%cKonsolu açacak kadar meraklısın demek. Bu iyi bir işaret. 🙂', style2);
+  console.log('%cCV / iş birliği için: salihtaskin282282@gmail.com', style2);
+  console.log('%cGitHub: https://github.com/Salihtaskin', style2);
+}
+
+// ---------- Konami kod easter egg ----------
+// ↑ ↑ ↓ ↓ ← → ← → B A girilirse küçük bir "penetrasyon testi tamamlandı" efekti göster.
+function initKonamiCode(){
+  const sequence = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+  let progress = 0;
+
+  function showKonamiReward(){
+    const el = document.createElement('div');
+    el.className = 'konami-banner';
+    el.innerHTML = '&gt; PENETRASYON TESTİ TAMAMLANDI ✅<br><span>Konami kodunu bilecek kadar eskisin. Saygılar. 🕹️</span>';
+    document.body.appendChild(el);
+    requestAnimationFrame(()=> el.classList.add('show'));
+    setTimeout(()=>{
+      el.classList.remove('show');
+      setTimeout(()=> el.remove(), 500);
+    }, 3500);
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    if(key === sequence[progress]){
+      progress++;
+      if(progress === sequence.length){
+        progress = 0;
+        showKonamiReward();
+      }
+    } else {
+      progress = (key === sequence[0]) ? 1 : 0;
+    }
+  });
+}
+
+// ---------- Sahte "güvenlik duvarı aşılıyor" yükleme ekranı ----------
+// Sadece ana sayfada, sayfa ilk açıldığında ~1.2 saniye sürer, sonra kaybolur.
+// Gerçekte hiçbir şey yapmaz, tema/atmosfer için.
+function initFakeLoadingScreen(){
+  const overlay = document.getElementById('fake-loading-screen');
+  if(!overlay) return;
+  const bar = document.getElementById('fake-loading-bar');
+  const pct = document.getElementById('fake-loading-pct');
+  let progress = 0;
+
+  const timer = setInterval(()=>{
+    progress += Math.random() * 22 + 8;
+    if(progress >= 100){
+      progress = 100;
+      clearInterval(timer);
+      setTimeout(()=>{
+        overlay.classList.add('hide');
+        setTimeout(()=> overlay.remove(), 500);
+      }, 250);
+    }
+    if(bar) bar.style.width = progress + '%';
+    if(pct) pct.textContent = Math.floor(progress) + '%';
+  }, 140);
+}
+
 document.addEventListener('DOMContentLoaded', async ()=>{
+  initFakeLoadingScreen();
   initMatrix();
   initNavToggle();
   await applyContentOverrides();
   initLanguage();
   initReveal();
+  initKonamiCode();
+  printConsoleMessage();
   sendVisitPing();
 });

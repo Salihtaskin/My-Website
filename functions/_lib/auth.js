@@ -225,7 +225,8 @@ export const DEFAULT_SETTINGS = {
   "badge.streak_days": "7",
   "badge.login_count_milestone": "10",
   "terminal.refresh_seconds": "5",
-  "terminal.max_events": "30"
+  "terminal.max_events": "30",
+  "feature.hack_prank": "1"
 };
 
 export async function getAllSettings(db) {

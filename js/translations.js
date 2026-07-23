@@ -396,5 +396,6 @@ const translations = {
 
   "toast.settings_saved": { tr: "Ayarlar kaydedildi.", en: "Settings saved." },
   "toast.question_added": { tr: "Soru eklendi.", en: "Question added." },
-  "toast.question_deleted": { tr: "Soru silindi.", en: "Question deleted." }
+  "toast.question_deleted": { tr: "Soru silindi.", en: "Question deleted." },
+  "dash.setting_hack_prank": { tr: "Ana Sayfa Şaka Ekranı (Foto + Terminal)", en: "Homepage Prank Screen (Photo + Terminal)" }
 };

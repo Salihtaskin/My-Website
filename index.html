@@ -12,6 +12,14 @@
 
 <canvas id="matrix-canvas"></canvas>
 
+<div id="fake-loading-screen">
+  <div class="fake-loading-inner">
+    <div class="fake-loading-line">root@salih:~# ./initialize_firewall.sh</div>
+    <div class="fake-loading-bar-wrap"><div class="fake-loading-bar" id="fake-loading-bar"></div></div>
+    <div class="fake-loading-line">Güvenlik duvarı aşılıyor... <span id="fake-loading-pct">0%</span></div>
+  </div>
+</div>
+
 <!-- NAVBAR -->
 <nav class="navbar">
   <div class="nav-inner">
@@ -252,6 +260,7 @@
 <script src="js/translations.js"></script>
 <script src="js/main.js"></script>
 <script src="js/session-ui.js"></script>
+<script src="js/prank.js"></script>
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
