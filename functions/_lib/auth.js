@@ -209,3 +209,42 @@ export async function verifyTotp(secretBase32, userCode, windowSteps = 1) {
   }
   return false;
 }
+
+/* ======================================================
+   site_settings yardımcıları — admin panelden aç/kapa ve
+   eşik değerleri için basit key/value okuma.
+====================================================== */
+
+export const DEFAULT_SETTINGS = {
+  "feature.threat_level": "1",
+  "feature.terminal_log": "1",
+  "feature.quiz": "1",
+  "feature.badges": "1",
+  "threat.yellow_threshold": "2",
+  "threat.red_threshold": "5",
+  "badge.streak_days": "7",
+  "badge.login_count_milestone": "10",
+  "terminal.refresh_seconds": "5",
+  "terminal.max_events": "30"
+};
+
+export async function getAllSettings(db) {
+  const merged = { ...DEFAULT_SETTINGS };
+  try {
+    const { results } = await db.prepare("SELECT key, value FROM site_settings").all();
+    (results || []).forEach(row => { merged[row.key] = row.value; });
+  } catch (e) {
+    // site_settings tablosu henüz yoksa (migration_v4.sql çalıştırılmadıysa)
+    // varsayılanlarla devam et.
+  }
+  return merged;
+}
+
+export function settingBool(settings, key) {
+  return settings[key] === "1" || settings[key] === "true";
+}
+
+export function settingInt(settings, key, fallback) {
+  const n = parseInt(settings[key], 10);
+  return Number.isFinite(n) ? n : fallback;
+}

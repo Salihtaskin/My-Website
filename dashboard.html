@@ -61,6 +61,76 @@
     Not: "Sistem Durumu" ve "Aktif Modüller" kartları temsili/gösterim amaçlıdır.
   </p>
 
+  <!-- Herkes için: Hesabım (şifre değiştirme, giriş geçmişi, rozetler, quiz) -->
+  <div id="my-account-section" style="margin-top:50px;">
+    <h2 class="section-title" data-i18n="dash.myaccount_title">Hesabım</h2>
+
+    <div class="dash-grid" style="margin-bottom:30px;">
+      <div class="dash-card">
+        <h4 data-i18n="dash.change_pass_title">Şifre Değiştir</h4>
+        <div class="settings-field">
+          <label data-i18n="dash.current_pass_label">Mevcut Şifre</label>
+          <input type="password" id="cp-current" class="search-input" style="width:100%;max-width:none;">
+        </div>
+        <div class="settings-field">
+          <label data-i18n="dash.new_pass_label">Yeni Şifre</label>
+          <input type="password" id="cp-new" class="search-input" style="width:100%;max-width:none;">
+        </div>
+        <div class="settings-field">
+          <label data-i18n="dash.confirm_pass_label">Yeni Şifre (Tekrar)</label>
+          <input type="password" id="cp-confirm" class="search-input" style="width:100%;max-width:none;">
+        </div>
+        <div class="login-msg" id="cp-msg"></div>
+        <button class="btn" id="cp-submit-btn" data-i18n="dash.btn_change_pass">Şifreyi Değiştir</button>
+      </div>
+
+      <div class="dash-card" id="badges-card" style="display:none;">
+        <h4 data-i18n="dash.badges_title">Rozetlerim</h4>
+        <div id="badges-list"></div>
+      </div>
+    </div>
+
+    <h4 style="color:var(--neon);margin-bottom:14px;" data-i18n="dash.my_login_history_title">Giriş Geçmişim</h4>
+    <div class="table-wrap" style="margin-bottom:40px;">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th data-i18n="dash.table_date">Zaman</th>
+            <th data-i18n="dash.table_ip">IP</th>
+            <th data-i18n="dash.table_ua">Cihaz / Tarayıcı</th>
+            <th data-i18n="dash.table_status">Durum</th>
+          </tr>
+        </thead>
+        <tbody id="my-login-history-body"></tbody>
+      </table>
+    </div>
+
+    <div id="quiz-section" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.quiz_title">Mini Siber Güvenlik Quiz</h2>
+      <div class="section-sub" data-i18n="dash.quiz_sub">Sorulara cevap ver, puan topla, skor tablosunda yerini al</div>
+
+      <div class="dash-card" style="max-width:720px;margin-bottom:24px;">
+        <div id="quiz-play-area"></div>
+        <button class="btn" id="quiz-start-btn" data-i18n="dash.quiz_start_btn">Quiz'e Başla</button>
+        <button class="btn" id="quiz-submit-btn" style="display:none;" data-i18n="dash.quiz_submit_btn">Cevapları Gönder</button>
+        <div id="quiz-result" style="margin-top:14px;"></div>
+      </div>
+
+      <h4 style="color:var(--neon);margin-bottom:14px;" data-i18n="dash.quiz_leaderboard_title">Skor Tablosu</h4>
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th data-i18n="dash.table_name">Ad Soyad</th>
+              <th data-i18n="dash.quiz_score_col">Skor</th>
+            </tr>
+          </thead>
+          <tbody id="quiz-leaderboard-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- Sadece admin için: Kullanıcı Yönetimi + Güvenlik -->
   <div id="admin-panel" style="display:none; margin-top:60px;">
 
@@ -71,7 +141,10 @@
       <button class="admin-tab" data-tab="blocked" data-i18n="dash.tab_blocked">Engellenen IP'ler</button>
       <button class="admin-tab" data-tab="twofa" data-i18n="dash.tab_2fa">2FA</button>
       <button class="admin-tab" data-tab="content" data-i18n="dash.tab_content">İçerik</button>
+      <button class="admin-tab" data-tab="livelog" data-i18n="dash.tab_livelog">Canlı Log</button>
+      <button class="admin-tab" data-tab="settings" data-i18n="dash.tab_settings">Ayarlar</button>
     </div>
+    <div id="threat-level-badge" style="display:none;margin-bottom:20px;"></div>
 
     <!-- TAB: Kullanıcılar -->
     <div id="tab-users" class="admin-tab-panel">
@@ -295,6 +368,80 @@
 
       <h4 style="color:var(--neon);margin-bottom:14px;" data-i18n="dash.content_overrides_title">Özelleştirilmiş Metinler</h4>
       <div id="content-overrides-list"></div>
+    </div>
+
+    <!-- TAB: Canlı Log -->
+    <div id="tab-livelog" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.livelog_title">Canlı Aktivite Logu</h2>
+      <div class="section-sub" data-i18n="dash.livelog_sub">Giriş denemeleri, IP engellemeleri ve yeni ziyaretler gerçek zamanlı</div>
+      <div id="livelog-disabled-msg" class="alert-banner" style="display:none;max-width:none;" data-i18n="dash.livelog_disabled">Bu özellik Ayarlar sekmesinden kapatılmış.</div>
+      <div id="live-terminal" class="live-terminal"></div>
+    </div>
+
+    <!-- TAB: Ayarlar -->
+    <div id="tab-settings" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.settings_title">Site Ayarları</h2>
+      <div class="section-sub" data-i18n="dash.settings_sub">Yeni özellikleri buradan aç/kapat ve eşik değerlerini düzenle</div>
+
+      <div class="dash-card" style="max-width:720px;margin-bottom:30px;">
+        <h4 data-i18n="dash.settings_features">Özellikler</h4>
+        <label class="settings-toggle"><input type="checkbox" id="setting-feature-threat_level"> <span data-i18n="dash.setting_threat_level">Tehdit Seviyesi Göstergesi</span></label>
+        <label class="settings-toggle"><input type="checkbox" id="setting-feature-terminal_log"> <span data-i18n="dash.setting_terminal_log">Canlı Aktivite Logu</span></label>
+        <label class="settings-toggle"><input type="checkbox" id="setting-feature-quiz"> <span data-i18n="dash.setting_quiz">Kullanıcılar için Mini Quiz/CTF</span></label>
+        <label class="settings-toggle"><input type="checkbox" id="setting-feature-badges"> <span data-i18n="dash.setting_badges">Kullanıcılar için Rozet Sistemi</span></label>
+      </div>
+
+      <div class="dash-card" style="max-width:720px;margin-bottom:30px;">
+        <h4 data-i18n="dash.settings_thresholds">Eşik Değerleri</h4>
+        <div class="settings-field">
+          <label data-i18n="dash.setting_yellow">Sarı Uyarı Eşiği (anomali sayısı)</label>
+          <input type="number" id="setting-threat-yellow_threshold" class="search-input" style="max-width:120px;">
+        </div>
+        <div class="settings-field">
+          <label data-i18n="dash.setting_red">Kırmızı Uyarı Eşiği (anomali sayısı)</label>
+          <input type="number" id="setting-threat-red_threshold" class="search-input" style="max-width:120px;">
+        </div>
+        <div class="settings-field">
+          <label data-i18n="dash.setting_streak">Rozet İçin Gerekli Giriş Serisi (gün)</label>
+          <input type="number" id="setting-badge-streak_days" class="search-input" style="max-width:120px;">
+        </div>
+        <div class="settings-field">
+          <label data-i18n="dash.setting_milestone">Rozet İçin Giriş Sayısı Eşiği</label>
+          <input type="number" id="setting-badge-login_count_milestone" class="search-input" style="max-width:120px;">
+        </div>
+        <div class="settings-field">
+          <label data-i18n="dash.setting_refresh">Canlı Log Yenileme Aralığı (saniye)</label>
+          <input type="number" id="setting-terminal-refresh_seconds" class="search-input" style="max-width:120px;">
+        </div>
+        <div class="settings-field">
+          <label data-i18n="dash.setting_maxevents">Canlı Log Maksimum Satır</label>
+          <input type="number" id="setting-terminal-max_events" class="search-input" style="max-width:120px;">
+        </div>
+        <button class="btn" id="settings-save-btn" data-i18n="dash.btn_save" style="margin-top:10px;">Kaydet</button>
+      </div>
+
+      <div class="dash-card" style="max-width:900px;">
+        <h4 data-i18n="dash.quiz_manage_title">Quiz Soruları Yönetimi</h4>
+        <div id="quiz-questions-list"></div>
+        <hr style="border-color:var(--border);margin:20px 0;">
+        <h4 data-i18n="dash.quiz_add_title">Yeni Soru Ekle</h4>
+        <input type="text" id="quiz-new-question" class="search-input" style="width:100%;max-width:none;margin-bottom:10px;" data-i18n-placeholder="dash.quiz_question_placeholder" placeholder="Soru metni">
+        <div class="quiz-options-grid">
+          <input type="text" id="quiz-new-a" class="search-input" data-i18n-placeholder="dash.quiz_option_a" placeholder="A şıkkı">
+          <input type="text" id="quiz-new-b" class="search-input" data-i18n-placeholder="dash.quiz_option_b" placeholder="B şıkkı">
+          <input type="text" id="quiz-new-c" class="search-input" data-i18n-placeholder="dash.quiz_option_c" placeholder="C şıkkı">
+          <input type="text" id="quiz-new-d" class="search-input" data-i18n-placeholder="dash.quiz_option_d" placeholder="D şıkkı">
+        </div>
+        <div class="table-toolbar">
+          <select id="quiz-new-correct" class="filter-select">
+            <option value="0">A</option>
+            <option value="1">B</option>
+            <option value="2">C</option>
+            <option value="3">D</option>
+          </select>
+          <button class="btn" id="quiz-add-btn" data-i18n="dash.quiz_add_btn">Soru Ekle</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

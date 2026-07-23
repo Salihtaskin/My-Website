@@ -715,3 +715,94 @@ footer .made{ color: var(--neon-dim); }
   .about-grid{ grid-template-columns: 1fr; }
   .about-photo{ max-width: 220px; margin: 0 auto; }
 }
+
+/* ---------- v4: Ayarlar, Canlı Log, Quiz ---------- */
+.live-terminal{
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  height: 420px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--neon);
+}
+.live-terminal .term-line{ margin-bottom: 4px; white-space: pre-wrap; word-break: break-word; }
+.live-terminal .term-line.fail{ color: var(--neon-red); }
+.live-terminal .term-line.blocked{ color: #ffbd2e; }
+.live-terminal .term-line.visit{ color: #7fd6ff; }
+
+.settings-toggle{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  cursor: pointer;
+  color: var(--text);
+}
+.settings-toggle input{ width: 18px; height: 18px; }
+
+.settings-field{
+  margin-bottom: 14px;
+}
+.settings-field label{
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.quiz-options-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+@media (max-width: 600px){
+  .quiz-options-grid{ grid-template-columns: 1fr; }
+}
+
+.threat-badge{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+.threat-badge.green{ background: rgba(0,255,157,0.12); color: var(--neon); border: 1px solid var(--neon); }
+.threat-badge.yellow{ background: rgba(255,189,46,0.12); color: #ffbd2e; border: 1px solid #ffbd2e; }
+.threat-badge.red{ background: rgba(255,56,96,0.12); color: var(--neon-red); border: 1px solid var(--neon-red); }
+
+.badge-chip{
+  display: inline-block;
+  padding: 6px 12px;
+  margin: 0 8px 8px 0;
+  border-radius: 16px;
+  border: 1px solid var(--neon-dim);
+  color: var(--neon);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+}
+.badge-chip.locked{
+  color: var(--text-dim);
+  border-color: var(--border);
+  opacity: 0.5;
+}
+
+.quiz-question-block{
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.quiz-question-block .q-text{ margin-bottom: 10px; color: var(--text); }
+.quiz-question-block label{
+  display: block;
+  margin-bottom: 6px;
+  cursor: pointer;
+  color: var(--text-dim);
+}
+.quiz-question-block label:hover{ color: var(--text); }

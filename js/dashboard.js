@@ -16,6 +16,12 @@ let analyticsLoaded = false;
 let blockedLoaded = false;
 let twofaLoaded = false;
 let contentLoaded = false;
+let settingsLoaded = false;
+let livelogLoaded = false;
+let liveLogTimer = null;
+let currentSettings = {};
+let quizQuestionsCache = [];
+let quizAnswers = {};
 let chartInstances = {};
 
 function currentLang(){
@@ -292,7 +298,7 @@ async function loadSecurity(){
 
 function initTabs(){
   const tabs = document.querySelectorAll('.admin-tab');
-  const panelIds = ['users','security','analytics','blocked','twofa','content'];
+  const panelIds = ['users','security','analytics','blocked','twofa','content','livelog','settings'];
   tabs.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       tabs.forEach(b=>b.classList.remove('active'));
@@ -321,6 +327,15 @@ function initTabs(){
       if(target === 'content' && !contentLoaded){
         contentLoaded = true;
         loadContentEditor();
+      }
+      if(target === 'settings' && !settingsLoaded){
+        settingsLoaded = true;
+        loadSettingsTab();
+      }
+      if(target === 'livelog'){
+        startLiveLogPolling();
+      } else {
+        stopLiveLogPolling();
       }
     });
   });
@@ -359,6 +374,17 @@ function initAdminPanel(){
   document.getElementById('content-key-select').addEventListener('change', renderSelectedContentKey);
   document.getElementById('content-save-btn').addEventListener('click', saveContentKey);
   document.getElementById('content-reset-btn').addEventListener('click', resetContentKey);
+
+  document.getElementById('settings-save-btn').addEventListener('click', saveSettings);
+  document.getElementById('quiz-add-btn').addEventListener('click', addQuizQuestion);
+  document.getElementById('quiz-questions-list').addEventListener('click', (e)=>{
+    const toggleBtn = e.target.closest('button[data-toggle-id]');
+    const deleteBtn = e.target.closest('button[data-delete-id]');
+    if(toggleBtn) toggleQuizQuestion(Number(toggleBtn.dataset.toggleId));
+    if(deleteBtn) deleteQuizQuestion(Number(deleteBtn.dataset.deleteId));
+  });
+
+  loadThreatBadge();
 }
 
 function initLogout(){
@@ -696,12 +722,440 @@ async function resetContentKey(){
   }
 }
 
+/* ---------------- Ayarlar sekmesi ---------------- */
+
+const SETTINGS_FIELD_IDS = {
+  "feature.threat_level": "setting-feature-threat_level",
+  "feature.terminal_log": "setting-feature-terminal_log",
+  "feature.quiz": "setting-feature-quiz",
+  "feature.badges": "setting-feature-badges",
+  "threat.yellow_threshold": "setting-threat-yellow_threshold",
+  "threat.red_threshold": "setting-threat-red_threshold",
+  "badge.streak_days": "setting-badge-streak_days",
+  "badge.login_count_milestone": "setting-badge-login_count_milestone",
+  "terminal.refresh_seconds": "setting-terminal-refresh_seconds",
+  "terminal.max_events": "setting-terminal-max_events"
+};
+
+const BOOLEAN_SETTING_KEYS = ["feature.threat_level", "feature.terminal_log", "feature.quiz", "feature.badges"];
+
+async function loadSettingsTab(){
+  try{
+    const res = await fetch('/api/admin/settings', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    currentSettings = data.settings || {};
+
+    Object.keys(SETTINGS_FIELD_IDS).forEach(key=>{
+      const el = document.getElementById(SETTINGS_FIELD_IDS[key]);
+      if(!el) return;
+      if(BOOLEAN_SETTING_KEYS.includes(key)){
+        el.checked = currentSettings[key] === '1' || currentSettings[key] === 'true';
+      } else {
+        el.value = currentSettings[key] ?? '';
+      }
+    });
+
+    loadQuizQuestionsAdmin();
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+async function saveSettings(){
+  const settings = {};
+  Object.keys(SETTINGS_FIELD_IDS).forEach(key=>{
+    const el = document.getElementById(SETTINGS_FIELD_IDS[key]);
+    if(!el) return;
+    settings[key] = BOOLEAN_SETTING_KEYS.includes(key) ? (el.checked ? '1' : '0') : String(el.value);
+  });
+
+  try{
+    const res = await fetch('/api/admin/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ settings })
+    });
+    if(res.ok){
+      showToast('toast.settings_saved', 'ok');
+      loadThreatBadge();
+    } else {
+      showToast('toast.error', 'error');
+    }
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+/* ---------------- Quiz soru yönetimi (admin) ---------------- */
+
+function renderQuizQuestionsAdmin(questions){
+  const container = document.getElementById('quiz-questions-list');
+  if(!questions.length){
+    container.innerHTML = `<div class="anomaly-card ok">${t('dash.no_users')}</div>`;
+    return;
+  }
+  const letters = ['A','B','C','D'];
+  container.innerHTML = questions.map(q => `
+    <div class="quiz-question-block">
+      <div class="q-text"><b>#${q.id}</b> ${escapeHtml(q.question)} — <span class="mono-cell">${t('dash.quiz_correct_label')}: ${letters[q.correct_index]}</span></div>
+      <div style="color:var(--text-dim);font-size:0.85rem;margin-bottom:8px;">
+        A) ${escapeHtml(q.option_a)} &nbsp; B) ${escapeHtml(q.option_b)} &nbsp; C) ${escapeHtml(q.option_c)} &nbsp; D) ${escapeHtml(q.option_d)}
+      </div>
+      <span class="badge ${q.active ? 'badge-approved' : 'badge-rejected'}">${q.active ? t('dash.quiz_active') : t('dash.quiz_inactive')}</span>
+      <button class="btn-mini" data-toggle-id="${q.id}">${t('dash.btn_toggle_active')}</button>
+      <button class="btn-mini delete" data-delete-id="${q.id}">${t('dash.btn_delete')}</button>
+    </div>
+  `).join('');
+}
+
+async function loadQuizQuestionsAdmin(){
+  try{
+    const res = await fetch('/api/admin/quiz-questions', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    renderQuizQuestionsAdmin(data.questions || []);
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+async function addQuizQuestion(){
+  const question = document.getElementById('quiz-new-question').value.trim();
+  const option_a = document.getElementById('quiz-new-a').value.trim();
+  const option_b = document.getElementById('quiz-new-b').value.trim();
+  const option_c = document.getElementById('quiz-new-c').value.trim();
+  const option_d = document.getElementById('quiz-new-d').value.trim();
+  const correct_index = Number(document.getElementById('quiz-new-correct').value);
+
+  if(!question || !option_a || !option_b || !option_c || !option_d) return;
+
+  try{
+    const res = await fetch('/api/admin/quiz-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'add', question, option_a, option_b, option_c, option_d, correct_index })
+    });
+    if(res.ok){
+      showToast('toast.question_added', 'ok');
+      ['quiz-new-question','quiz-new-a','quiz-new-b','quiz-new-c','quiz-new-d'].forEach(id=>{
+        document.getElementById(id).value = '';
+      });
+      loadQuizQuestionsAdmin();
+    } else {
+      showToast('toast.error', 'error');
+    }
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+async function toggleQuizQuestion(id){
+  try{
+    await fetch('/api/admin/quiz-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'toggle', id })
+    });
+    loadQuizQuestionsAdmin();
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function deleteQuizQuestion(id){
+  if(!confirm(t('dash.confirm_delete'))) return;
+  try{
+    await fetch('/api/admin/quiz-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    showToast('toast.question_deleted', 'ok');
+    loadQuizQuestionsAdmin();
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+/* ---------------- Tehdit seviyesi göstergesi ---------------- */
+
+async function loadThreatBadge(){
+  try{
+    const res = await fetch('/api/admin/threat-level', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    const el = document.getElementById('threat-level-badge');
+
+    if(!data.enabled){
+      el.style.display = 'none';
+      return;
+    }
+
+    const labelKey = data.level === 'red' ? 'dash.threat_red' : (data.level === 'yellow' ? 'dash.threat_yellow' : 'dash.threat_green');
+    const icon = data.level === 'red' ? '🔴' : (data.level === 'yellow' ? '🟡' : '🟢');
+    el.innerHTML = `<span class="threat-badge ${data.level}">${icon} ${t(labelKey)} (${data.score})</span>`;
+    el.style.display = 'block';
+  } catch(err){ /* sessizce geç */ }
+}
+
+/* ---------------- Canlı hacker terminal logu ---------------- */
+
+function renderLiveLog(events){
+  const term = document.getElementById('live-terminal');
+  if(!events.length){
+    term.innerHTML = `<div class="term-line">// henüz bir olay yok</div>`;
+    return;
+  }
+  term.innerHTML = events.map(ev=>{
+    const cls = ev.type === 'login_fail' ? 'fail' : (ev.type === 'blocked' ? 'blocked' : (ev.type === 'visit' ? 'visit' : ''));
+    return `<div class="term-line ${cls}">[${formatDate(ev.created_at)}] ${escapeHtml(ev.text)}</div>`;
+  }).join('');
+}
+
+async function fetchLiveLog(){
+  try{
+    const res = await fetch('/api/admin/live-feed', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    document.getElementById('livelog-disabled-msg').style.display = data.enabled === false ? 'block' : 'none';
+    document.getElementById('live-terminal').style.display = data.enabled === false ? 'none' : 'block';
+    if(data.enabled !== false){
+      renderLiveLog(data.events || []);
+    }
+  } catch(err){ /* sessizce geç */ }
+}
+
+function startLiveLogPolling(){
+  fetchLiveLog();
+  stopLiveLogPolling();
+  const seconds = Number(currentSettings['terminal.refresh_seconds']) || 5;
+  liveLogTimer = setInterval(fetchLiveLog, Math.max(seconds, 3) * 1000);
+}
+
+function stopLiveLogPolling(){
+  if(liveLogTimer){
+    clearInterval(liveLogTimer);
+    liveLogTimer = null;
+  }
+}
+
+/* ---------------- Hesabım: şifre değiştirme ---------------- */
+
+function initChangePassword(){
+  const btn = document.getElementById('cp-submit-btn');
+  if(!btn) return;
+  btn.addEventListener('click', async ()=>{
+    const lang = currentLang();
+    const msg = document.getElementById('cp-msg');
+    const current = document.getElementById('cp-current').value;
+    const next = document.getElementById('cp-new').value;
+    const confirmVal = document.getElementById('cp-confirm').value;
+
+    if(!current || !next || !confirmVal){
+      msg.textContent = t('cp.err_missing'); msg.className = 'login-msg error'; return;
+    }
+    if(next.length < 8){
+      msg.textContent = t('cp.err_weak'); msg.className = 'login-msg error'; return;
+    }
+    if(next !== confirmVal){
+      msg.textContent = t('cp.err_mismatch'); msg.className = 'login-msg error'; return;
+    }
+
+    btn.disabled = true;
+    try{
+      const res = await fetch('/api/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ current_password: current, new_password: next })
+      });
+      const data = await res.json().catch(()=>({}));
+      if(res.ok && data.ok){
+        msg.textContent = t('cp.success'); msg.className = 'login-msg ok';
+        document.getElementById('cp-current').value = '';
+        document.getElementById('cp-new').value = '';
+        document.getElementById('cp-confirm').value = '';
+      } else if(data.error === 'wrong_current_password'){
+        msg.textContent = t('cp.err_wrong_current'); msg.className = 'login-msg error';
+      } else {
+        msg.textContent = t('toast.error'); msg.className = 'login-msg error';
+      }
+    } catch(err){
+      msg.textContent = t('toast.error'); msg.className = 'login-msg error';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
+/* ---------------- Hesabım: kendi giriş geçmişim ---------------- */
+
+async function loadMyLoginHistory(){
+  try{
+    const res = await fetch('/api/my-login-history', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    const tbody = document.getElementById('my-login-history-body');
+    const events = data.events || [];
+    if(!events.length){
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-dim);">${t('dash.no_users')}</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = events.map(ev=>{
+      const statusHtml = ev.success
+        ? `<span class="badge badge-approved">${t('dash.log_success')}</span>`
+        : `<span class="badge badge-rejected">${t('dash.log_failed')}</span>`;
+      return `
+        <tr>
+          <td>${formatDate(ev.created_at)}</td>
+          <td class="mono-cell">${escapeHtml(ev.ip || '—')}</td>
+          <td class="ua-cell" title="${escapeHtml(ev.user_agent || '')}">${escapeHtml((ev.user_agent || '').slice(0,60))}</td>
+          <td>${statusHtml}</td>
+        </tr>`;
+    }).join('');
+  } catch(err){ /* sessizce geç */ }
+}
+
+/* ---------------- Hesabım: rozetler ---------------- */
+
+const BADGE_LABELS = {
+  first_login: { tr: "İlk Giriş", en: "First Login" },
+  login_milestone: { tr: v => `${v} Giriş`, en: v => `${v} Logins` },
+  login_streak: { tr: v => `${v} Gün Seri`, en: v => `${v}-Day Streak` },
+  quiz_master: { tr: "Quiz Ustası", en: "Quiz Master" }
+};
+
+function badgeLabel(key, value){
+  const lang = currentLang();
+  const entry = BADGE_LABELS[key];
+  if(!entry) return key;
+  const val = entry[lang];
+  return typeof val === 'function' ? val(value) : val;
+}
+
+async function loadBadges(){
+  try{
+    const res = await fetch('/api/my-badges', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    const card = document.getElementById('badges-card');
+    if(!data.enabled){
+      card.style.display = 'none';
+      return;
+    }
+    card.style.display = 'block';
+    const list = document.getElementById('badges-list');
+    list.innerHTML = (data.badges || []).map(b=>{
+      const label = badgeLabel(b.key, b.value);
+      return `<span class="badge-chip ${b.earned ? '' : 'locked'}">${b.earned ? '🏅' : '🔒'} ${escapeHtml(label)}</span>`;
+    }).join('');
+  } catch(err){ /* sessizce geç */ }
+}
+
+/* ---------------- Hesabım: mini quiz/CTF ---------------- */
+
+function renderQuizPlayArea(questions){
+  const container = document.getElementById('quiz-play-area');
+  const letters = ['a','b','c','d'];
+  container.innerHTML = questions.map((q, idx) => `
+    <div class="quiz-question-block">
+      <div class="q-text">${idx + 1}. ${escapeHtml(q.question)}</div>
+      ${letters.map((l, i) => `
+        <label>
+          <input type="radio" name="quiz-q-${q.id}" value="${i}" data-qid="${q.id}">
+          ${String.fromCharCode(65 + i)}) ${escapeHtml(q['option_' + l])}
+        </label>
+      `).join('')}
+    </div>
+  `).join('');
+
+  container.querySelectorAll('input[type=radio]').forEach(input=>{
+    input.addEventListener('change', (e)=>{
+      quizAnswers[e.target.dataset.qid] = Number(e.target.value);
+    });
+  });
+}
+
+async function startQuiz(){
+  try{
+    const res = await fetch('/api/quiz/questions', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    if(!data.enabled) return;
+    quizQuestionsCache = data.questions || [];
+    quizAnswers = {};
+    renderQuizPlayArea(quizQuestionsCache);
+    document.getElementById('quiz-start-btn').style.display = 'none';
+    document.getElementById('quiz-submit-btn').style.display = 'inline-flex';
+    document.getElementById('quiz-result').innerHTML = '';
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function submitQuiz(){
+  const answers = Object.keys(quizAnswers).map(id => ({ id: Number(id), selected: quizAnswers[id] }));
+  if(!answers.length) return;
+
+  try{
+    const res = await fetch('/api/quiz/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ answers })
+    });
+    const data = await res.json().catch(()=>({}));
+    if(res.ok && data.ok){
+      document.getElementById('quiz-result').innerHTML =
+        `<div class="anomaly-card ok">${t('dash.quiz_result_text')}: ${data.score} / ${data.total}</div>`;
+      document.getElementById('quiz-submit-btn').style.display = 'none';
+      document.getElementById('quiz-start-btn').style.display = 'inline-flex';
+      loadQuizLeaderboard();
+      loadBadges();
+    } else {
+      showToast('toast.error', 'error');
+    }
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function loadQuizLeaderboard(){
+  try{
+    const res = await fetch('/api/quiz/leaderboard', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    const tbody = document.getElementById('quiz-leaderboard-body');
+    const rows = data.leaderboard || [];
+    tbody.innerHTML = rows.length
+      ? rows.map(r => `<tr><td>${escapeHtml(r.full_name)}</td><td>${r.best_score} / ${r.best_total}</td></tr>`).join('')
+      : `<tr><td colspan="2" style="text-align:center;color:var(--text-dim);">${t('dash.no_users')}</td></tr>`;
+  } catch(err){ /* sessizce geç */ }
+}
+
+async function initQuizSection(){
+  try{
+    const res = await fetch('/api/settings', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    if(!(data.settings && (data.settings['feature.quiz'] === '1' || data.settings['feature.quiz'] === 'true'))) return;
+
+    document.getElementById('quiz-section').style.display = 'block';
+    document.getElementById('quiz-start-btn').addEventListener('click', startQuiz);
+    document.getElementById('quiz-submit-btn').addEventListener('click', submitQuiz);
+    loadQuizLeaderboard();
+  } catch(err){ /* sessizce geç */ }
+}
+
 document.addEventListener('DOMContentLoaded', async ()=>{
   initLogout();
   const user = await loadMe();
   if(!user) return;
   currentUser = user;
   renderAccountInfo(user);
+
+  initChangePassword();
+  loadMyLoginHistory();
+  loadBadges();
+  initQuizSection();
+
   if(user.role === 'admin'){
     initAdminPanel();
   }
