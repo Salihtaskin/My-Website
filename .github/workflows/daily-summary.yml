@@ -1,0 +1,17 @@
+name: Günlük özet e-postası
+
+on:
+  schedule:
+    # 06:00 UTC = 09:00 Türkiye saati (UTC+3)
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}   # GitHub Actions sekmesinden elle de tetiklenebilir
+
+jobs:
+  send-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Özet uç noktasını tetikle
+        run: |
+          curl -sS -X POST "https://salihtaskin.pages.dev/api/admin/daily-summary" \
+            -H "X-Cron-Secret: ${{ secrets.CRON_SECRET }}" \
+            -w "\nHTTP status: %{http_code}\n"
