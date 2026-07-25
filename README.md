@@ -313,3 +313,55 @@ Migration çalıştırılmadan da site bozulmaz (varsayılan olarak açık davra
 - `css/style.css`, `js/main.js`, `js/dashboard.js`, `js/translations.js`, `dashboard.html`, `index.html` (tema, blog nav linki, iletişim formu, favicon/manifest linkleri)
 
 Migration çalıştırılmadan da site bozulmaz (blog/mesajlar boş görünür).
+
+---
+
+## v7 Güncellemesi (iletişim formuna otomatik yanıt e-postası)
+
+Artık iletişim formunu dolduran biri, sana giden bildirimin yanında **kendisine de otomatik bir "mesajın bana ulaştı" onay e-postası** alıyor.
+
+### ÖNEMLİ — bunun gerçekten ziyaretçiye gitmesi için
+
+Resend'in varsayılan gönderen adresi `onboarding@resend.dev` **test amaçlıdır** ve sadece Resend hesabına kayıtlı senin kendi e-postana gönderim yapabilir — başka birine (yani gerçek ziyaretçilere) otomatik e-posta gitmesi için Resend'de **kendi bir alan adını (domain) doğrulaman** gerekiyor:
+
+1. Bir alan adın yoksa ucuz bir tane al (Namecheap, Cloudflare Registrar vb. — örn. `salihtaskin.com`).
+2. Resend Dashboard → **Domains** → **Add Domain** → alan adını gir.
+3. Resend'in verdiği DNS kayıtlarını (birkaç TXT/MX/CNAME) alan adını aldığın yerin DNS ayarlarına ekle (Cloudflare kullanıyorsan zaten oradan yönetiyorsundur).
+4. Doğrulama birkaç dakika-birkaç saat sürebilir. Doğrulanınca Resend'de yeşil tik görürsün.
+5. Cloudflare Pages ortam değişkenlerinde `FROM_EMAIL` değerini `onboarding@resend.dev` yerine kendi domainindeki bir adrese çevir (örn. `merhaba@salihtaskin.com`).
+
+Domain doğrulamadan da form çalışmaya devam eder — sana bildirim gider, ziyaretçiye otomatik yanıt gitmez (sessizce atlanır, hata vermez).
+
+---
+
+## v8 Güncellemeleri (şifremi unuttum, blog yorum/etiket/RSS, bülten aboneliği, 404 sayfası)
+
+### 1) D1 Migration'ı çalıştır
+
+`migration_v8.sql` (aslında `migration_v7.sql` adıyla repoda duruyor — sıradaki migration numarası) dosyasının tamamını Cloudflare Dashboard → D1 veritabanın → **Console** sekmesine yapıştırıp çalıştır. Şunları ekler: `password_reset_tokens`, `blog_comments`, `newsletter_subscribers` tabloları, `blog_posts` tablosuna `tags` sütunu, ve iki yeni ayar (`feature.comments`, `feature.newsletter`). Mevcut veriyi silmez.
+
+### 2) Neler eklendi
+
+- **Şifremi unuttum:** login sayfasına "Şifremi unuttum" linki eklendi. E-postanı girince (RESEND_API_KEY tanımlıysa) 30 dakika geçerli bir sıfırlama linki gidiyor, `reset-password.html` üzerinden yeni şifre belirlenebiliyor. Enumeration'a karşı hesap olsun olmasın hep aynı "gönderildiyse gönderildi" cevabı dönüyor.
+- **Blog etiketleri:** yeni yazı eklerken admin panelden virgülle ayrılmış etiket girebilirsin (`guvenlik,pentest` gibi). Blog sayfasında etiketlere göre filtreleme butonları çıkıyor.
+- **Blog yorumları:** her yazının altında ziyaretçiler yorum bırakabiliyor. Spam'e karşı honeypot + saatte 5 yorum limiti var. Yorumlar admin onayından geçmeden görünmüyor — admin panelde **Blog** sekmesinin altına eklenen "Yorum Moderasyonu" tablosundan onayla/sil yapabilirsin. Ayarlar sekmesinden yorumları tamamen kapatabilirsin.
+- **RSS akışı:** `https://salihtaskin.pages.dev/feed.xml` — yayınlanmış son 30 yazıyı standart RSS 2.0 formatında verir, herhangi bir RSS okuyucuyla takip edilebilir. Blog sayfasında da bir "RSS Aboneliği" linki var.
+- **Yeni yazı bildirim aboneliği:** blog sayfasının altına bir "yeni yazılardan haberdar ol" e-posta formu eklendi. Sen admin panelden bir yazıyı taslaktan yayına aldığında (RESEND_API_KEY tanımlıysa ve Ayarlar'dan kapatılmadıysa) tüm abonelere otomatik mail gidiyor. Her mailin altında tek tıkla abonelikten çıkma linki var. Admin panelde yeni **Aboneler** sekmesinden kayıtlı e-postaları görüp elle de silebilirsin.
+  - Not: bu özellik de tıpkı iletişim formu otomatik yanıtı gibi Resend'in domain doğrulama kısıtına tabi — `FROM_EMAIL` doğrulanmış bir domainden değilse gerçek abonelere mail gitmez (README'deki v7 bölümüne bak).
+- **Sosyal paylaşım butonları:** her blog yazısının altına "Bu yazıyı paylaş" bölümü eklendi (X/Twitter + LinkedIn). Projeler bölümündeki kartlara paylaşım butonu eklemedim çünkü projelerin canlı bir linki yok, paylaşılacak bir URL olmadan buton anlamsız kalıyordu — istersen projelere link ekleyip sonra buna göre paylaşım butonu da ekleyebiliriz.
+- **Özel 404 sayfası:** artık var olmayan bir adrese gidildiğinde sitenin geri kalanıyla aynı terminal temalı, "404 — sayfa bulunamadı" yazan özel bir sayfa çıkıyor (Cloudflare Pages `404.html` dosyasını otomatik kullanır, ekstra bir ayar gerekmez).
+
+### 3) Yeni/değişen dosyalar özeti
+
+- `migration_v7.sql`
+- `functions/api/forgot-password.js`, `functions/api/reset-password.js`, `forgot-password.html`, `reset-password.html`, `js/password-recovery.js`
+- `functions/api/blog.js`, `functions/api/blog-post.js`, `functions/api/admin/blog.js` (etiketler + yayına alınca abonelere haber verme)
+- `functions/api/blog-comments.js`, `functions/api/admin/blog-comments.js`
+- `functions/feed.xml.js`
+- `functions/api/subscribe.js`, `functions/api/unsubscribe.js`, `functions/api/admin/subscribers.js`
+- `404.html`
+- `js/blog.js`, `blog.html`, `blog-post.html` (etiket filtreleme, yorumlar, paylaşım butonları, abonelik formu)
+- `dashboard.html`, `js/dashboard.js` (Blog sekmesine etiket alanı + yorum moderasyonu, yeni Aboneler sekmesi, Ayarlar'a yorum/bülten aç-kapa)
+- `css/style.css`, `js/translations.js`, `login.html`, `sitemap.xml`
+
+Migration çalıştırılmadan da site bozulmaz (yeni özellikler sessizce devre dışı kalır, mevcut sayfalar etkilenmez).

@@ -946,3 +946,157 @@ footer .made{ color: var(--neon-dim); }
   line-height: 1.7;
 }
 .prank-reveal-stage .btn{ margin-top: 20px; }
+
+/* ======================================================
+   v8: Blog etiketleri, yorumlar, paylaşım butonları,
+   bülten aboneliği ve 404 sayfası
+====================================================== */
+.tag-filter-bar{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 30px;
+}
+.tag-pill{
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  background: transparent;
+  transition: all .2s;
+  text-decoration: none;
+}
+.tag-pill:hover{ border-color: var(--neon); color: var(--neon); }
+.tag-pill.active{ border-color: var(--neon); color: var(--neon); background: rgba(0,255,157,.08); }
+.card .post-tags{ margin-bottom: 10px; }
+.card .post-tags .tag-pill{ font-size: 0.68rem; padding: 2px 9px; margin-right: 6px; margin-bottom: 6px; }
+
+.blog-toolbar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.rss-link{
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.rss-link:hover{ color: var(--neon); border-color: var(--neon); }
+
+.share-bar{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 30px 0;
+  flex-wrap: wrap;
+}
+.share-bar span{ color: var(--text-dim); font-size: 0.85rem; }
+.share-btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  text-decoration: none;
+  transition: all .2s;
+}
+.share-btn:hover{ border-color: var(--neon); color: var(--neon); }
+
+.comments-section{ margin-top: 50px; }
+.comment-item{
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+.comment-item .comment-head{
+  display: flex;
+  justify-content: space-between;
+  color: var(--neon);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+.comment-item .comment-date{ color: var(--text-dim); font-size: 0.75rem; }
+.comment-item .comment-body{ color: var(--text-dim); font-size: 0.88rem; line-height: 1.6; }
+
+.comment-form{
+  margin-top: 24px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 20px;
+  max-width: 640px;
+}
+.comment-form input, .comment-form textarea{
+  width: 100%;
+  margin-bottom: 12px;
+  background: var(--bg-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  font-family: inherit;
+}
+.comment-form input:focus, .comment-form textarea:focus{ border-color: var(--neon); outline: none; }
+.hp-field{ display:none !important; }
+
+.subscribe-box{
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 24px;
+  max-width: 520px;
+  margin: 40px 0;
+}
+.subscribe-box h4{ color: var(--neon); margin-bottom: 6px; font-size: 1rem; }
+.subscribe-box .section-sub{ margin-bottom: 16px; }
+.subscribe-form{ display: flex; gap: 10px; flex-wrap: wrap; }
+.subscribe-form input[type="email"]{
+  flex: 1;
+  min-width: 200px;
+  background: var(--bg-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: inherit;
+}
+.subscribe-form input[type="email"]:focus{ border-color: var(--neon); outline: none; }
+.subscribe-msg{ margin-top: 10px; font-size: 0.82rem; }
+.subscribe-msg.error{ color: var(--neon-red); }
+.subscribe-msg.ok{ color: var(--neon); }
+
+/* 404 sayfası */
+.notfound-wrap{
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 140px 20px 60px;
+}
+.notfound-code{
+  font-family: var(--font-mono);
+  font-size: 5rem;
+  color: var(--neon);
+  line-height: 1;
+  margin-bottom: 10px;
+  text-shadow: 0 0 20px rgba(0,255,157,.35);
+}
+.notfound-terminal{
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  margin: 18px 0 30px;
+}
+.notfound-terminal .err{ color: var(--neon-red); }

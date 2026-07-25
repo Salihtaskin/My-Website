@@ -45,11 +45,20 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: "server_error" }, 500);
   }
 
-  // Resend yapılandırılmışsa site sahibine anlık e-posta bildirimi de gönder
-  // (yapılandırılmamışsa mesaj yine de veritabanında/admin panelinde kalır).
+  // Resend yapılandırılmışsa iki e-posta gönderilir:
+  //  1) Site sahibine bildirim (yeni mesaj geldi)
+  //  2) Mesajı gönderen kişiye otomatik "aldık, teşekkürler" onay e-postası
+  // Not: FROM_EMAIL varsayılan olarak Resend'in "onboarding@resend.dev" test
+  // adresiyse, Resend SADECE senin kendi hesap e-postana gönderime izin verir;
+  // ziyaretçiye otomatik e-posta gitmesi için Resend'de kendi domainini
+  // doğrulaman ve FROM_EMAIL'i o domainden bir adrese çevirmen gerekir.
+  // README'deki "v7 - Ziyaretçiye otomatik e-posta" bölümüne bak.
+  let autoReplySent = false;
+
   if (context.env.RESEND_API_KEY) {
-    const to = context.env.ADMIN_EMAIL || "salihtaskin282282@gmail.com";
+    const adminTo = context.env.ADMIN_EMAIL || "salihtaskin282282@gmail.com";
     const from = context.env.FROM_EMAIL || "onboarding@resend.dev";
+
     try {
       await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -59,16 +68,43 @@ export async function onRequestPost(context) {
         },
         body: JSON.stringify({
           from,
-          to: [to],
+          to: [adminTo],
           reply_to: email,
           subject: `Site iletişim formu: ${name}`,
           html: `<p><b>Gönderen:</b> ${name} (${email})</p><p><b>Mesaj:</b></p><p>${message.replace(/\n/g, "<br>")}</p>`
         })
       });
     } catch (e) {
-      // e-posta gönderilemese de form gönderimi başarısız sayılmaz, mesaj DB'de duruyor
+      // bildirim gönderilemese de form gönderimi başarısız sayılmaz, mesaj DB'de duruyor
+    }
+
+    try {
+      const autoReplyRes = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${context.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from,
+          to: [email],
+          subject: "Mesajın bana ulaştı — Salih Taşkın",
+          html: `
+            <p>Merhaba ${name},</p>
+            <p>Mesajın için teşekkürler, bana ulaştı. En kısa sürede dönüş yapacağım.</p>
+            <p style="color:#888;">Gönderdiğin mesaj:</p>
+            <blockquote style="border-left:3px solid #00875f;margin:0;padding-left:12px;color:#555;">
+              ${message.replace(/\n/g, "<br>")}
+            </blockquote>
+            <p style="margin-top:20px;">— Salih Taşkın<br>salihtaskin.pages.dev</p>
+          `
+        })
+      });
+      autoReplySent = autoReplyRes.ok;
+    } catch (e) {
+      // otomatik yanıt gönderilemedi (muhtemelen domain doğrulanmadı), sorun değil
     }
   }
 
-  return jsonResponse({ ok: true });
+  return jsonResponse({ ok: true, auto_reply_sent: autoReplySent });
 }

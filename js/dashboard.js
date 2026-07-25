@@ -19,6 +19,7 @@ let contentLoaded = false;
 let settingsLoaded = false;
 let messagesLoaded = false;
 let blogLoaded = false;
+let subscribersLoaded = false;
 let livelogLoaded = false;
 let liveLogTimer = null;
 let currentSettings = {};
@@ -300,7 +301,7 @@ async function loadSecurity(){
 
 function initTabs(){
   const tabs = document.querySelectorAll('.admin-tab');
-  const panelIds = ['users','security','analytics','blocked','twofa','content','blog','livelog','messages','settings'];
+  const panelIds = ['users','security','analytics','blocked','twofa','content','blog','livelog','messages','subscribers','settings'];
   tabs.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       tabs.forEach(b=>b.classList.remove('active'));
@@ -341,6 +342,11 @@ function initTabs(){
       if(target === 'blog' && !blogLoaded){
         blogLoaded = true;
         loadBlogPostsAdmin();
+        loadBlogComments();
+      }
+      if(target === 'subscribers' && !subscribersLoaded){
+        subscribersLoaded = true;
+        loadSubscribers();
       }
       if(target === 'livelog'){
         startLiveLogPolling();
@@ -406,6 +412,18 @@ function initAdminPanel(){
     const deleteBtn = e.target.closest('button[data-delete-id]');
     if(toggleBtn) toggleQuizQuestion(Number(toggleBtn.dataset.toggleId));
     if(deleteBtn) deleteQuizQuestion(Number(deleteBtn.dataset.deleteId));
+  });
+
+  document.getElementById('blog-comments-table-body').addEventListener('click', (e)=>{
+    const approveBtn = e.target.closest('button[data-approve-comment-id]');
+    const delBtn = e.target.closest('button[data-delete-comment-id]');
+    if(approveBtn) approveComment(Number(approveBtn.dataset.approveCommentId));
+    if(delBtn) deleteComment(Number(delBtn.dataset.deleteCommentId));
+  });
+
+  document.getElementById('subscribers-table-body').addEventListener('click', (e)=>{
+    const delBtn = e.target.closest('button[data-delete-sub-id]');
+    if(delBtn) deleteSubscriber(Number(delBtn.dataset.deleteSubId));
   });
 
   loadThreatBadge();
@@ -759,10 +777,12 @@ const SETTINGS_FIELD_IDS = {
   "badge.login_count_milestone": "setting-badge-login_count_milestone",
   "terminal.refresh_seconds": "setting-terminal-refresh_seconds",
   "terminal.max_events": "setting-terminal-max_events",
-  "feature.hack_prank": "setting-feature-hack_prank"
+  "feature.hack_prank": "setting-feature-hack_prank",
+  "feature.comments": "setting-feature-comments",
+  "feature.newsletter": "setting-feature-newsletter"
 };
 
-const BOOLEAN_SETTING_KEYS = ["feature.threat_level", "feature.terminal_log", "feature.quiz", "feature.badges", "feature.hack_prank"];
+const BOOLEAN_SETTING_KEYS = ["feature.threat_level", "feature.terminal_log", "feature.quiz", "feature.badges", "feature.hack_prank", "feature.comments", "feature.newsletter"];
 
 async function loadSettingsTab(){
   try{
@@ -1262,6 +1282,7 @@ async function addBlogPost(){
   const title_en = document.getElementById('blog-new-title-en').value.trim();
   const content_tr = document.getElementById('blog-new-content-tr').value.trim();
   const content_en = document.getElementById('blog-new-content-en').value.trim();
+  const tags = document.getElementById('blog-new-tags').value.trim();
 
   if(!title_tr || !title_en || !content_tr || !content_en) return;
 
@@ -1270,17 +1291,118 @@ async function addBlogPost(){
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ action: 'add', title_tr, title_en, content_tr, content_en })
+      body: JSON.stringify({ action: 'add', title_tr, title_en, content_tr, content_en, tags })
     });
     if(res.ok){
       showToast('toast.saved', 'ok');
-      ['blog-new-title-tr','blog-new-title-en','blog-new-content-tr','blog-new-content-en'].forEach(id=>{
+      ['blog-new-title-tr','blog-new-title-en','blog-new-content-tr','blog-new-content-en','blog-new-tags'].forEach(id=>{
         document.getElementById(id).value = '';
       });
       loadBlogPostsAdmin();
     } else {
       showToast('toast.error', 'error');
     }
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+/* ---------------- Blog yorum moderasyonu (admin) ---------------- */
+
+function renderBlogComments(comments){
+  const tbody = document.getElementById('blog-comments-table-body');
+  if(!tbody) return;
+  if(!comments.length){
+    tbody.innerHTML = `<tr><td colspan="6">${t('dash.comments_empty')}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = comments.map(c => `
+    <tr>
+      <td>${formatDate(c.created_at)}</td>
+      <td>${escapeHtml(c.name)}</td>
+      <td>${escapeHtml(c.post_title || '')}</td>
+      <td>${escapeHtml((c.comment_text || '').slice(0, 140))}</td>
+      <td><span class="badge ${c.approved ? 'badge-approved' : 'badge-pending'}">${c.approved ? t('dash.comment_approved') : t('dash.comment_pending')}</span></td>
+      <td>
+        ${c.approved ? '' : `<button class="btn-mini" data-approve-comment-id="${c.id}">${t('dash.comment_approve_btn')}</button>`}
+        <button class="btn-mini delete" data-delete-comment-id="${c.id}">${t('dash.comment_delete_btn')}</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function loadBlogComments(){
+  try{
+    const res = await fetch('/api/admin/blog-comments', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    renderBlogComments(data.comments || []);
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function approveComment(id){
+  try{
+    await fetch('/api/admin/blog-comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'approve', id })
+    });
+    loadBlogComments();
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function deleteComment(id){
+  if(!confirm(t('dash.confirm_delete'))) return;
+  try{
+    await fetch('/api/admin/blog-comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    showToast('toast.deleted', 'ok');
+    loadBlogComments();
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+/* ---------------- Bülten aboneleri (admin) ---------------- */
+
+function renderSubscribers(subs){
+  document.getElementById('stat-subscribers').textContent = subs.length;
+  const tbody = document.getElementById('subscribers-table-body');
+  if(!tbody) return;
+  if(!subs.length){
+    tbody.innerHTML = `<tr><td colspan="3">${t('dash.no_users')}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = subs.map(s => `
+    <tr>
+      <td>${escapeHtml(s.email)}</td>
+      <td>${formatDate(s.created_at)}</td>
+      <td><button class="btn-mini delete" data-delete-sub-id="${s.id}">${t('dash.btn_delete')}</button></td>
+    </tr>
+  `).join('');
+}
+
+async function loadSubscribers(){
+  try{
+    const res = await fetch('/api/admin/subscribers', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    renderSubscribers(data.subscribers || []);
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function deleteSubscriber(id){
+  if(!confirm(t('dash.confirm_delete'))) return;
+  try{
+    await fetch('/api/admin/subscribers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    showToast('toast.deleted', 'ok');
+    loadSubscribers();
   } catch(err){ showToast('toast.error', 'error'); }
 }
 

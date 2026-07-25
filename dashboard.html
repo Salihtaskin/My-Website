@@ -149,6 +149,7 @@
       <button class="admin-tab" data-tab="blog" data-i18n="dash.tab_blog">Blog</button>
       <button class="admin-tab" data-tab="livelog" data-i18n="dash.tab_livelog">Canlı Log</button>
       <button class="admin-tab" data-tab="messages" data-i18n="dash.tab_messages">Mesajlar</button>
+      <button class="admin-tab" data-tab="subscribers" data-i18n="dash.tab_subscribers">Aboneler</button>
       <button class="admin-tab" data-tab="settings" data-i18n="dash.tab_settings">Ayarlar</button>
     </div>
     <div id="threat-level-badge" style="display:none;margin-bottom:20px;"></div>
@@ -383,12 +384,30 @@
       <div id="blog-posts-list"></div>
       <hr style="border-color:var(--border);margin:24px 0;">
       <h4 style="color:var(--neon);margin-bottom:14px;" data-i18n="dash.blog_add_title">Yeni Yazı Ekle</h4>
-      <div class="dash-card" style="max-width:800px;">
+      <div class="dash-card" style="max-width:800px;margin-bottom:34px;">
         <input type="text" id="blog-new-title-tr" class="search-input" style="width:100%;max-width:none;margin-bottom:10px;" data-i18n-placeholder="dash.blog_title_tr_placeholder" placeholder="Başlık (Türkçe)">
         <input type="text" id="blog-new-title-en" class="search-input" style="width:100%;max-width:none;margin-bottom:10px;" data-i18n-placeholder="dash.blog_title_en_placeholder" placeholder="Başlık (İngilizce)">
         <textarea id="blog-new-content-tr" rows="6" style="width:100%;margin-bottom:10px;background:var(--bg-alt);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:inherit;" data-i18n-placeholder="dash.blog_content_tr_placeholder" placeholder="İçerik (Türkçe)"></textarea>
         <textarea id="blog-new-content-en" rows="6" style="width:100%;margin-bottom:10px;background:var(--bg-alt);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:inherit;" data-i18n-placeholder="dash.blog_content_en_placeholder" placeholder="Content (English)"></textarea>
+        <input type="text" id="blog-new-tags" class="search-input" style="width:100%;max-width:none;margin-bottom:10px;" data-i18n-placeholder="dash.blog_tags_placeholder" placeholder="Etiketler (virgülle ayır, ör: guvenlik,pentest)">
         <button class="btn" id="blog-add-btn" data-i18n="dash.blog_add_btn">Yazıyı Ekle</button>
+      </div>
+
+      <h4 style="color:var(--neon);margin-bottom:14px;" data-i18n="dash.blog_comments_title">Yorum Moderasyonu</h4>
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th data-i18n="dash.table_date">Zaman</th>
+              <th data-i18n="dash.table_name">Ad Soyad</th>
+              <th data-i18n="dash.table_post">Yazı</th>
+              <th data-i18n="dash.table_message">Mesaj</th>
+              <th data-i18n="dash.table_status">Durum</th>
+              <th data-i18n="dash.table_actions">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="blog-comments-table-body"></tbody>
+        </table>
       </div>
     </div>
 
@@ -421,6 +440,29 @@
       </div>
     </div>
 
+    <!-- TAB: Aboneler -->
+    <div id="tab-subscribers" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.subscribers_title">Bülten Aboneleri</h2>
+      <div class="section-sub" data-i18n="dash.subscribers_sub">Yeni blog yazısı yayınlandığında bu e-postalara otomatik mail gider</div>
+
+      <div class="dash-grid" style="margin-bottom:30px;">
+        <div class="dash-card"><h4 data-i18n="dash.subscribers_count">Toplam Abone</h4><div class="stat-num" id="stat-subscribers">0</div></div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th data-i18n="dash.table_email">E-posta</th>
+              <th data-i18n="dash.table_date">Kayıt Tarihi</th>
+              <th data-i18n="dash.table_actions">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="subscribers-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- TAB: Ayarlar -->
     <div id="tab-settings" class="admin-tab-panel" style="display:none;">
       <h2 class="section-title" data-i18n="dash.settings_title">Site Ayarları</h2>
@@ -433,6 +475,8 @@
         <label class="settings-toggle"><input type="checkbox" id="setting-feature-quiz"> <span data-i18n="dash.setting_quiz">Kullanıcılar için Mini Quiz/CTF</span></label>
         <label class="settings-toggle"><input type="checkbox" id="setting-feature-badges"> <span data-i18n="dash.setting_badges">Kullanıcılar için Rozet Sistemi</span></label>
         <label class="settings-toggle"><input type="checkbox" id="setting-feature-hack_prank"> <span data-i18n="dash.setting_hack_prank">Ana Sayfa Şaka Ekranı (Foto + Terminal)</span></label>
+        <label class="settings-toggle"><input type="checkbox" id="setting-feature-comments"> <span data-i18n="dash.setting_comments">Blog Yorumları</span></label>
+        <label class="settings-toggle"><input type="checkbox" id="setting-feature-newsletter"> <span data-i18n="dash.setting_newsletter">Yeni Yazı Bildirim Aboneliği</span></label>
       </div>
 
       <div class="dash-card" style="max-width:720px;margin-bottom:30px;">

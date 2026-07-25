@@ -44,6 +44,21 @@
   <div class="container">
     <a href="blog.html" class="back-link" data-i18n="blog.back">← Bloga dön</a>
     <div id="post-content" style="margin-top:20px;max-width:760px;"></div>
+    <div id="share-bar" class="share-bar" style="max-width:760px;"></div>
+
+    <div id="comments-section" class="comments-section" style="max-width:760px;">
+      <h4 style="color:var(--neon);margin-bottom:16px;" data-i18n="blog.comments_title">Yorumlar</h4>
+      <div id="comments-list"></div>
+
+      <form id="comment-form" class="comment-form">
+        <input type="text" id="comment-name" data-i18n-placeholder="blog.comment_name_placeholder" placeholder="Ad Soyad" required>
+        <input type="email" id="comment-email" data-i18n-placeholder="blog.comment_email_placeholder" placeholder="E-posta (opsiyonel, yayınlanmaz)">
+        <input type="text" id="comment-website" name="website" class="hp-field" autocomplete="off" tabindex="-1">
+        <textarea id="comment-text" rows="4" data-i18n-placeholder="blog.comment_text_placeholder" placeholder="Yorumun..." required></textarea>
+        <button type="submit" class="btn" data-i18n="blog.comment_submit">Yorum Gönder</button>
+        <div class="login-msg" id="comment-msg"></div>
+      </form>
+    </div>
   </div>
 </section>
 

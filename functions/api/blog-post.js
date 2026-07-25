@@ -8,7 +8,7 @@ export async function onRequestGet(context) {
 
   try {
     const post = await context.env.DB.prepare(
-      `SELECT id, slug, title_tr, title_en, content_tr, content_en, created_at
+      `SELECT id, slug, title_tr, title_en, content_tr, content_en, tags, created_at
        FROM blog_posts WHERE slug = ? AND published = 1`
     ).bind(slug).first();
 
