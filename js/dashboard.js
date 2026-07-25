@@ -17,6 +17,8 @@ let blockedLoaded = false;
 let twofaLoaded = false;
 let contentLoaded = false;
 let settingsLoaded = false;
+let messagesLoaded = false;
+let blogLoaded = false;
 let livelogLoaded = false;
 let liveLogTimer = null;
 let currentSettings = {};
@@ -298,7 +300,7 @@ async function loadSecurity(){
 
 function initTabs(){
   const tabs = document.querySelectorAll('.admin-tab');
-  const panelIds = ['users','security','analytics','blocked','twofa','content','livelog','settings'];
+  const panelIds = ['users','security','analytics','blocked','twofa','content','blog','livelog','messages','settings'];
   tabs.forEach(btn=>{
     btn.addEventListener('click', ()=>{
       tabs.forEach(b=>b.classList.remove('active'));
@@ -331,6 +333,14 @@ function initTabs(){
       if(target === 'settings' && !settingsLoaded){
         settingsLoaded = true;
         loadSettingsTab();
+      }
+      if(target === 'messages' && !messagesLoaded){
+        messagesLoaded = true;
+        loadMessages();
+      }
+      if(target === 'blog' && !blogLoaded){
+        blogLoaded = true;
+        loadBlogPostsAdmin();
       }
       if(target === 'livelog'){
         startLiveLogPolling();
@@ -376,6 +386,20 @@ function initAdminPanel(){
   document.getElementById('content-reset-btn').addEventListener('click', resetContentKey);
 
   document.getElementById('settings-save-btn').addEventListener('click', saveSettings);
+  document.getElementById('messages-table-body').addEventListener('click', (e)=>{
+    const readBtn = e.target.closest('button[data-read-id]');
+    const delBtn = e.target.closest('button[data-delete-msg-id]');
+    if(readBtn) markMessageRead(Number(readBtn.dataset.readId));
+    if(delBtn) deleteMessage(Number(delBtn.dataset.deleteMsgId));
+  });
+
+  document.getElementById('blog-add-btn').addEventListener('click', addBlogPost);
+  document.getElementById('blog-posts-list').addEventListener('click', (e)=>{
+    const toggleBtn = e.target.closest('button[data-toggle-blog-id]');
+    const delBtn = e.target.closest('button[data-delete-blog-id]');
+    if(toggleBtn) toggleBlogPost(Number(toggleBtn.dataset.toggleBlogId));
+    if(delBtn) deleteBlogPost(Number(delBtn.dataset.deleteBlogId));
+  });
   document.getElementById('quiz-add-btn').addEventListener('click', addQuizQuestion);
   document.getElementById('quiz-questions-list').addEventListener('click', (e)=>{
     const toggleBtn = e.target.closest('button[data-toggle-id]');
@@ -1143,6 +1167,147 @@ async function initQuizSection(){
     document.getElementById('quiz-submit-btn').addEventListener('click', submitQuiz);
     loadQuizLeaderboard();
   } catch(err){ /* sessizce geç */ }
+}
+
+/* ---------------- Mesajlar sekmesi ---------------- */
+
+function renderMessages(messages){
+  const tbody = document.getElementById('messages-table-body');
+  if(!messages.length){
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-dim);">${t('dash.no_messages')}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = messages.map(m => `
+    <tr>
+      <td>${formatDate(m.created_at)}</td>
+      <td>${escapeHtml(m.name)}</td>
+      <td>${escapeHtml(m.email)}</td>
+      <td style="max-width:280px;white-space:pre-wrap;">${escapeHtml((m.message || '').slice(0, 300))}</td>
+      <td><span class="badge ${m.is_read ? 'badge-approved' : 'badge-pending'}">${m.is_read ? t('dash.msg_read') : t('dash.msg_unread')}</span></td>
+      <td class="actions-cell">
+        ${m.is_read ? '' : `<button class="btn-mini approve" data-read-id="${m.id}">${t('dash.btn_mark_read')}</button>`}
+        <button class="btn-mini delete" data-delete-msg-id="${m.id}">${t('dash.btn_delete')}</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function loadMessages(){
+  try{
+    const res = await fetch('/api/admin/messages', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    renderMessages(data.messages || []);
+  } catch(err){
+    showToast('toast.error', 'error');
+  }
+}
+
+async function markMessageRead(id){
+  try{
+    await fetch('/api/admin/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'mark_read', id })
+    });
+    loadMessages();
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function deleteMessage(id){
+  if(!confirm(t('dash.confirm_delete'))) return;
+  try{
+    await fetch('/api/admin/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    showToast('toast.deleted', 'ok');
+    loadMessages();
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+/* ---------------- Blog yönetimi (admin) ---------------- */
+
+function renderBlogPostsAdmin(posts){
+  const container = document.getElementById('blog-posts-list');
+  if(!posts.length){
+    container.innerHTML = `<div class="anomaly-card ok">${t('dash.no_users')}</div>`;
+    return;
+  }
+  container.innerHTML = posts.map(p => `
+    <div class="quiz-question-block">
+      <div class="q-text"><b>${escapeHtml(p.title_tr)}</b> <span class="mono-cell">/${escapeHtml(p.slug)}</span></div>
+      <div style="color:var(--text-dim);font-size:0.85rem;margin-bottom:8px;">${formatDate(p.created_at)}</div>
+      <span class="badge ${p.published ? 'badge-approved' : 'badge-pending'}">${p.published ? t('dash.blog_published') : t('dash.blog_draft')}</span>
+      <button class="btn-mini" data-toggle-blog-id="${p.id}">${t('dash.btn_toggle_publish')}</button>
+      <button class="btn-mini delete" data-delete-blog-id="${p.id}">${t('dash.btn_delete')}</button>
+    </div>
+  `).join('');
+}
+
+async function loadBlogPostsAdmin(){
+  try{
+    const res = await fetch('/api/admin/blog', { credentials: 'same-origin' });
+    if(!res.ok) return;
+    const data = await res.json();
+    renderBlogPostsAdmin(data.posts || []);
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function addBlogPost(){
+  const title_tr = document.getElementById('blog-new-title-tr').value.trim();
+  const title_en = document.getElementById('blog-new-title-en').value.trim();
+  const content_tr = document.getElementById('blog-new-content-tr').value.trim();
+  const content_en = document.getElementById('blog-new-content-en').value.trim();
+
+  if(!title_tr || !title_en || !content_tr || !content_en) return;
+
+  try{
+    const res = await fetch('/api/admin/blog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'add', title_tr, title_en, content_tr, content_en })
+    });
+    if(res.ok){
+      showToast('toast.saved', 'ok');
+      ['blog-new-title-tr','blog-new-title-en','blog-new-content-tr','blog-new-content-en'].forEach(id=>{
+        document.getElementById(id).value = '';
+      });
+      loadBlogPostsAdmin();
+    } else {
+      showToast('toast.error', 'error');
+    }
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function toggleBlogPost(id){
+  try{
+    await fetch('/api/admin/blog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'toggle_publish', id })
+    });
+    loadBlogPostsAdmin();
+  } catch(err){ showToast('toast.error', 'error'); }
+}
+
+async function deleteBlogPost(id){
+  if(!confirm(t('dash.confirm_delete'))) return;
+  try{
+    await fetch('/api/admin/blog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    showToast('toast.deleted', 'ok');
+    loadBlogPostsAdmin();
+  } catch(err){ showToast('toast.error', 'error'); }
 }
 
 document.addEventListener('DOMContentLoaded', async ()=>{

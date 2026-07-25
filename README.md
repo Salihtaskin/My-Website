@@ -285,3 +285,31 @@ Foto+terminal şakasının çalışması için `assets/prank.jpg` adında bir fo
 - `index.html` — sahte yükleme ekranı HTML'i + prank.js script etiketi
 
 Migration çalıştırılmadan da site bozulmaz (varsayılan olarak açık davranır).
+
+---
+
+## v6 Güncellemeleri (SEO, PDF CV, blog, açık/koyu tema, iletişim formu, PWA)
+
+### 1) D1 Migration'ı çalıştır
+
+`migration_v6.sql` dosyasının tamamını Cloudflare Dashboard → D1 veritabanın → **Console** sekmesine yapıştırıp çalıştır. `contact_messages` ve `blog_posts` tablolarını ekler, veri kaybı olmaz.
+
+### 2) Neler eklendi
+
+- **SEO:** sosyal medyada paylaşınca güzel bir önizleme kartı (Open Graph/Twitter Card), `sitemap.xml`, `robots.txt`, schema.org yapılandırılmış veri.
+- **İndirilebilir CV:** ana sayfadaki "CV İndir" butonu `assets/CV_Salih_Taskin.pdf` dosyasını indirir — sitedeki mevcut deneyim/eğitim/sertifika bilgilerinden otomatik oluşturuldu. İçeriği güncelleyince PDF'i de güncellemek istersen haber ver, yeniden oluşturayım.
+- **Mini blog:** `blog.html` (yazı listesi) ve `blog-post.html` (tekil yazı). Admin panelde yeni **Blog** sekmesinden başlık+içerik (TR/EN) girip yazı ekleyebilir, yayınlayıp/taslağa alabilir, silebilirsin.
+- **Açık/koyu tema:** navbar'daki 🌙/☀️ butonuyla değiştirilir, tercih tarayıcıda hatırlanır.
+- **Gerçek iletişim formu:** ana sayfadaki form artık gerçekten mesaj gönderiyor — hem veritabanına kaydediyor (admin panelde yeni **Mesajlar** sekmesinden görülüyor) hem de (RESEND_API_KEY tanımlıysa) sana e-posta bildirimi atıyor. Spam'e karşı honeypot alanı + saatte 5 mesaj limiti var.
+- **PWA:** site artık telefonda "ana ekrana ekle" ile uygulama gibi eklenebiliyor (`manifest.json`), statik dosyalar (`sw.js` ile) önbelleğe alınıp daha hızlı yükleniyor. Oturum/admin verileri asla önbelleğe alınmaz, her zaman güncel gelir.
+
+### 3) Yeni/değişen dosyalar özeti
+
+- `migration_v6.sql`, `functions/api/contact.js`, `functions/api/admin/messages.js`
+- `functions/api/blog.js`, `functions/api/blog-post.js`, `functions/api/admin/blog.js`
+- `blog.html`, `blog-post.html`, `js/blog.js`, `js/contact.js`
+- `manifest.json`, `sw.js`, `sitemap.xml`, `robots.txt`
+- `assets/CV_Salih_Taskin.pdf`, `assets/icons/*.png`
+- `css/style.css`, `js/main.js`, `js/dashboard.js`, `js/translations.js`, `dashboard.html`, `index.html` (tema, blog nav linki, iletişim formu, favicon/manifest linkleri)
+
+Migration çalıştırılmadan da site bozulmaz (blog/mesajlar boş görünür).

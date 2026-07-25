@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="post-title-tag">Blog // Salih Taşkın</title>
+<meta name="description" id="post-desc-tag" content="Salih Taşkın'ın siber güvenlik üzerine yazıları.">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#060a09">
+</head>
+<body>
+
+<canvas id="matrix-canvas"></canvas>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html#home" class="logo">S.T <span>// CyberSec</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html#home" data-i18n="nav.home">Ana Sayfa</a></li>
+      <li><a href="index.html#about" data-i18n="nav.about">Hakkımda</a></li>
+      <li><a href="index.html#projects" data-i18n="nav.projects">Projeler</a></li>
+      <li><a href="blog.html" data-i18n="nav.blog">Blog</a></li>
+      <li><a href="index.html#contact" data-i18n="nav.contact">İletişim</a></li>
+      <li data-auth="guest-only"><a href="register.html" data-i18n="nav.register">Kayıt Ol</a></li>
+      <li data-auth="guest-only"><a href="login.html" data-i18n="nav.login">Giriş Yap</a></li>
+      <li data-auth="user-only" style="display:none;"><a href="dashboard.html" data-i18n="nav.dashboard">Panele Git</a></li>
+      <li data-auth="user-only" style="display:none;"><a href="#" id="nav-logout-btn" data-i18n="dash.logout">Çıkış Yap</a></li>
+    </ul>
+    <div class="nav-actions">
+      <div class="lang-toggle">
+        <button data-lang="tr">TR</button>
+        <button data-lang="en">EN</button>
+      </div>
+      <button class="theme-toggle" id="theme-toggle-btn" aria-label="tema degistir" title="Tema degistir">🌙</button>
+      <button class="nav-toggle" aria-label="menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<section class="section" style="border-bottom:none;padding-top:140px;">
+  <div class="container">
+    <a href="blog.html" class="back-link" data-i18n="blog.back">← Bloga dön</a>
+    <div id="post-content" style="margin-top:20px;max-width:760px;"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div>© <span id="year"></span> Salih Taşkın — <span data-i18n="footer.text">Tüm hakları saklıdır.</span></div>
+    <div class="made" data-i18n="footer.made">Cloudflare Pages üzerinde barındırılıyor.</div>
+  </div>
+</footer>
+
+<script src="js/translations.js"></script>
+<script src="js/main.js"></script>
+<script src="js/session-ui.js"></script>
+<script src="js/blog.js"></script>
+<script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

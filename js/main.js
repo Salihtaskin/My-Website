@@ -25,6 +25,7 @@ function applyLanguage(lang){
     b.classList.toggle('active', b.dataset.lang === lang);
   });
   localStorage.setItem('site_lang', lang);
+  document.dispatchEvent(new CustomEvent('site-language-changed', { detail: { lang } }));
 
   // restart typing effect for hero terminal line if present
   const termEl = document.querySelector('.terminal-line .typed');
@@ -38,6 +39,27 @@ function initLanguage(){
   applyLanguage(saved);
   document.querySelectorAll('.lang-toggle button').forEach(btn=>{
     btn.addEventListener('click', ()=> applyLanguage(btn.dataset.lang));
+  });
+}
+
+// ---------- Açık/Koyu tema ----------
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  document.querySelectorAll('.theme-toggle').forEach(btn=>{
+    btn.textContent = theme === 'light' ? '🌙' : '☀️';
+    btn.title = theme === 'light' ? 'Koyu temaya geç' : 'Açık temaya geç';
+  });
+  localStorage.setItem('site_theme', theme);
+}
+
+function initTheme(){
+  const saved = localStorage.getItem('site_theme') || 'dark';
+  applyTheme(saved);
+  document.querySelectorAll('.theme-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      applyTheme(current === 'light' ? 'dark' : 'light');
+    });
   });
 }
 
@@ -235,14 +257,25 @@ function initFakeLoadingScreen(){
   }, 140);
 }
 
+// ---------- PWA: service worker kaydı ----------
+function initServiceWorker(){
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('/sw.js').catch(()=>{ /* sessizce geç */ });
+    });
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async ()=>{
   initFakeLoadingScreen();
   initMatrix();
   initNavToggle();
+  initTheme();
   await applyContentOverrides();
   initLanguage();
   initReveal();
   initKonamiCode();
   printConsoleMessage();
   sendVisitPing();
+  initServiceWorker();
 });

@@ -12,6 +12,7 @@ const translations = {
   "nav.projects":    { tr: "Projeler",   en: "Projects" },
   "nav.certificates":{ tr: "Sertifikalar", en: "Certificates" },
   "nav.contact":     { tr: "İletişim",   en: "Contact" },
+  "nav.blog":        { tr: "Blog",        en: "Blog" },
   "nav.register":    { tr: "Kayıt Ol",   en: "Register" },
   "nav.login":       { tr: "Giriş Yap",  en: "Login" },
   "nav.dashboard":   { tr: "Panele Git", en: "Go to Dashboard" },
@@ -25,6 +26,7 @@ const translations = {
   "hero.btn_projects": { tr: "Projelerimi Gör", en: "View Projects" },
   "hero.btn_contact":  { tr: "İletişime Geç", en: "Contact Me" },
   "hero.btn_login":    { tr: "Panele Giriş", en: "Access Panel" },
+  "hero.btn_cv":       { tr: "CV İndir", en: "Download CV" },
   "hero.alert": { tr: "<b>UYARI:</b> Bu site, sahibi tarafından yürütülen yetkilendirilmiş sızma testi (pentest) ve güvenlik denemeleri için bir laboratuvar ortamıdır. Yalnızca site sahibinin izin verdiği testler yapılmaktadır.",
                   en: "<b>WARNING:</b> This site is a lab environment used for authorized penetration testing and security experiments conducted by its owner. Only tests approved by the site owner are performed here." },
 
@@ -397,5 +399,47 @@ const translations = {
   "toast.settings_saved": { tr: "Ayarlar kaydedildi.", en: "Settings saved." },
   "toast.question_added": { tr: "Soru eklendi.", en: "Question added." },
   "toast.question_deleted": { tr: "Soru silindi.", en: "Question deleted." },
-  "dash.setting_hack_prank": { tr: "Ana Sayfa Şaka Ekranı (Foto + Terminal)", en: "Homepage Prank Screen (Photo + Terminal)" }
+  "dash.setting_hack_prank": { tr: "Ana Sayfa Şaka Ekranı (Foto + Terminal)", en: "Homepage Prank Screen (Photo + Terminal)" },
+
+  // CONTACT FORM
+  "contact.form_name_label": { tr: "Ad Soyad", en: "Full Name" },
+  "contact.form_email_label": { tr: "E-posta", en: "Email" },
+  "contact.form_message_label": { tr: "Mesaj", en: "Message" },
+  "contact.form_submit": { tr: "Gönder", en: "Send" },
+  "contact.form_success": { tr: "Mesajın gönderildi, teşekkürler! En kısa sürede dönüş yapacağım.", en: "Your message was sent, thanks! I'll get back to you soon." },
+  "contact.form_err_missing": { tr: "Lütfen tüm alanları doldur.", en: "Please fill in all fields." },
+  "contact.form_err_email": { tr: "Geçerli bir e-posta adresi gir.", en: "Please enter a valid email address." },
+  "contact.form_err_rate_limited": { tr: "Çok fazla mesaj gönderdin, biraz sonra tekrar dene.", en: "Too many messages sent, please try again later." },
+  "contact.form_err_server": { tr: "Bir hata oluştu, lütfen daha sonra tekrar dene.", en: "Something went wrong, please try again later." },
+
+  // DASHBOARD - Mesajlar sekmesi
+  "dash.tab_messages": { tr: "Mesajlar", en: "Messages" },
+  "dash.messages_title": { tr: "İletişim Mesajları", en: "Contact Messages" },
+  "dash.messages_sub": { tr: "Sitedeki iletişim formundan gelen mesajlar", en: "Messages received from the site's contact form" },
+  "dash.table_message": { tr: "Mesaj", en: "Message" },
+  "dash.btn_mark_read": { tr: "Okundu İşaretle", en: "Mark as Read" },
+  "dash.msg_read": { tr: "Okundu", en: "Read" },
+  "dash.msg_unread": { tr: "Okunmadı", en: "Unread" },
+  "dash.no_messages": { tr: "Henüz mesaj yok.", en: "No messages yet." },
+
+  // BLOG
+  "blog.page_title": { tr: "Blog", en: "Blog" },
+  "blog.page_sub": { tr: "cat posts/*.md", en: "cat posts/*.md" },
+  "blog.read_more": { tr: "Devamını oku →", en: "Read more →" },
+  "blog.empty": { tr: "Henüz yazı yayınlanmadı.", en: "No posts published yet." },
+  "blog.back": { tr: "← Bloga dön", en: "← Back to blog" },
+  "blog.not_found": { tr: "Yazı bulunamadı.", en: "Post not found." },
+
+  // DASHBOARD - Blog sekmesi
+  "dash.tab_blog": { tr: "Blog", en: "Blog" },
+  "dash.blog_manage_title": { tr: "Blog Yazıları", en: "Blog Posts" },
+  "dash.blog_add_title": { tr: "Yeni Yazı Ekle", en: "Add New Post" },
+  "dash.blog_title_tr_placeholder": { tr: "Başlık (Türkçe)", en: "Title (Turkish)" },
+  "dash.blog_title_en_placeholder": { tr: "Başlık (İngilizce)", en: "Title (English)" },
+  "dash.blog_content_tr_placeholder": { tr: "İçerik (Türkçe)", en: "Content (Turkish)" },
+  "dash.blog_content_en_placeholder": { tr: "İçerik (İngilizce)", en: "Content (English)" },
+  "dash.blog_add_btn": { tr: "Yazıyı Ekle", en: "Add Post" },
+  "dash.blog_published": { tr: "Yayında", en: "Published" },
+  "dash.blog_draft": { tr: "Taslak", en: "Draft" },
+  "dash.btn_toggle_publish": { tr: "Yayınla/Taslağa Al", en: "Publish/Unpublish" }
 };

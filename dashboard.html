@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard // Salih Taşkın</title>
 <link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="theme-color" content="#060a09">
 </head>
 <body class="dashboard-page">
 
@@ -19,6 +23,7 @@
         <button data-lang="tr">TR</button>
         <button data-lang="en">EN</button>
       </div>
+      <button class="theme-toggle" id="theme-toggle-btn" aria-label="tema degistir" title="Tema degistir">🌙</button>
       <button class="btn btn-alt" id="logout-btn" data-i18n="dash.logout">Çıkış Yap</button>
     </div>
   </div>
@@ -141,7 +146,9 @@
       <button class="admin-tab" data-tab="blocked" data-i18n="dash.tab_blocked">Engellenen IP'ler</button>
       <button class="admin-tab" data-tab="twofa" data-i18n="dash.tab_2fa">2FA</button>
       <button class="admin-tab" data-tab="content" data-i18n="dash.tab_content">İçerik</button>
+      <button class="admin-tab" data-tab="blog" data-i18n="dash.tab_blog">Blog</button>
       <button class="admin-tab" data-tab="livelog" data-i18n="dash.tab_livelog">Canlı Log</button>
+      <button class="admin-tab" data-tab="messages" data-i18n="dash.tab_messages">Mesajlar</button>
       <button class="admin-tab" data-tab="settings" data-i18n="dash.tab_settings">Ayarlar</button>
     </div>
     <div id="threat-level-badge" style="display:none;margin-bottom:20px;"></div>
@@ -370,12 +377,48 @@
       <div id="content-overrides-list"></div>
     </div>
 
+    <!-- TAB: Blog -->
+    <div id="tab-blog" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.blog_manage_title">Blog Yazıları</h2>
+      <div id="blog-posts-list"></div>
+      <hr style="border-color:var(--border);margin:24px 0;">
+      <h4 style="color:var(--neon);margin-bottom:14px;" data-i18n="dash.blog_add_title">Yeni Yazı Ekle</h4>
+      <div class="dash-card" style="max-width:800px;">
+        <input type="text" id="blog-new-title-tr" class="search-input" style="width:100%;max-width:none;margin-bottom:10px;" data-i18n-placeholder="dash.blog_title_tr_placeholder" placeholder="Başlık (Türkçe)">
+        <input type="text" id="blog-new-title-en" class="search-input" style="width:100%;max-width:none;margin-bottom:10px;" data-i18n-placeholder="dash.blog_title_en_placeholder" placeholder="Başlık (İngilizce)">
+        <textarea id="blog-new-content-tr" rows="6" style="width:100%;margin-bottom:10px;background:var(--bg-alt);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:inherit;" data-i18n-placeholder="dash.blog_content_tr_placeholder" placeholder="İçerik (Türkçe)"></textarea>
+        <textarea id="blog-new-content-en" rows="6" style="width:100%;margin-bottom:10px;background:var(--bg-alt);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:inherit;" data-i18n-placeholder="dash.blog_content_en_placeholder" placeholder="Content (English)"></textarea>
+        <button class="btn" id="blog-add-btn" data-i18n="dash.blog_add_btn">Yazıyı Ekle</button>
+      </div>
+    </div>
+
     <!-- TAB: Canlı Log -->
     <div id="tab-livelog" class="admin-tab-panel" style="display:none;">
       <h2 class="section-title" data-i18n="dash.livelog_title">Canlı Aktivite Logu</h2>
       <div class="section-sub" data-i18n="dash.livelog_sub">Giriş denemeleri, IP engellemeleri ve yeni ziyaretler gerçek zamanlı</div>
       <div id="livelog-disabled-msg" class="alert-banner" style="display:none;max-width:none;" data-i18n="dash.livelog_disabled">Bu özellik Ayarlar sekmesinden kapatılmış.</div>
       <div id="live-terminal" class="live-terminal"></div>
+    </div>
+
+    <!-- TAB: Mesajlar -->
+    <div id="tab-messages" class="admin-tab-panel" style="display:none;">
+      <h2 class="section-title" data-i18n="dash.messages_title">İletişim Mesajları</h2>
+      <div class="section-sub" data-i18n="dash.messages_sub">Sitedeki iletişim formundan gelen mesajlar</div>
+      <div class="table-wrap">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th data-i18n="dash.table_date">Zaman</th>
+              <th data-i18n="dash.table_name">Ad Soyad</th>
+              <th data-i18n="dash.table_email">E-posta</th>
+              <th data-i18n="dash.table_message">Mesaj</th>
+              <th data-i18n="dash.table_status">Durum</th>
+              <th data-i18n="dash.table_actions">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody id="messages-table-body"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- TAB: Ayarlar -->
